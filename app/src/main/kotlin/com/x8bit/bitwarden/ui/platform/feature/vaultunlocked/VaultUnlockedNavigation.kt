@@ -7,6 +7,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.navigation
 import com.bitwarden.annotation.OmitFromCoverage
+import com.bitwarden.ui.platform.base.util.composableWithRootPushTransitions
 import com.x8bit.bitwarden.ui.auth.feature.accountsetup.navigateToSetupAutoFillScreen
 import com.x8bit.bitwarden.ui.auth.feature.accountsetup.navigateToSetupBrowserAutofillScreen
 import com.x8bit.bitwarden.ui.auth.feature.accountsetup.navigateToSetupUnlockScreen
@@ -22,6 +23,8 @@ import com.x8bit.bitwarden.ui.platform.feature.premium.upgraded.upgradedToPremiu
 import com.x8bit.bitwarden.ui.platform.feature.search.SearchRoute
 import com.x8bit.bitwarden.ui.platform.feature.search.navigateToSearch
 import com.x8bit.bitwarden.ui.platform.feature.search.searchDestination
+import com.x8bit.bitwarden.ui.platform.feature.settings.SettingsRoute
+import com.x8bit.bitwarden.ui.platform.feature.settings.googledrive.GoogleDriveScreen
 import com.x8bit.bitwarden.ui.platform.feature.settings.accountsecurity.deleteaccount.deleteAccountDestination
 import com.x8bit.bitwarden.ui.platform.feature.settings.accountsecurity.deleteaccount.navigateToDeleteAccount
 import com.x8bit.bitwarden.ui.platform.feature.settings.accountsecurity.deleteaccountconfirmation.deleteAccountConfirmationDestination
@@ -82,6 +85,12 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data object VaultUnlockedGraphRoute
+
+/**
+ * The type-safe route for the google drive screen in the vault unlocked graph.
+ */
+@Serializable
+data object VaultGoogleDriveRoute
 
 /**
  * Navigate to the vault unlocked screen.
@@ -283,7 +292,13 @@ fun NavGraphBuilder.vaultUnlockedGraph(
             onNavigateBack = { navController.popBackStack() },
             onNavigateToPreviewAttachment = { navController.navigateToPreviewAttachment(it) },
             onNavigateToPlan = { navController.navigateToPlanModal() },
+            onNavigateToGoogleDrive = { navController.navigate(VaultGoogleDriveRoute) },
         )
+        composableWithRootPushTransitions<VaultGoogleDriveRoute> {
+            GoogleDriveScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
         setupUnlockDestination(
             onNavigateBack = {
                 navController.popBackStack()

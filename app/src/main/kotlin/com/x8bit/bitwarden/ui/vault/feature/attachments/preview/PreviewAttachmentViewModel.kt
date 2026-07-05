@@ -126,7 +126,57 @@ class PreviewAttachmentViewModel @Inject constructor(
                 handleNoAttachmentFileLocationReceive()
             }
 
+            PreviewAttachmentAction.ShareClick -> handleShareClick()
+
             is PreviewAttachmentAction.Internal -> handleInternalAction(action)
+        }
+    }
+
+    private fun handleShareClick() {
+        mutableStateFlow.update {
+            it.copy(
+                dialogState = PreviewAttachmentState.DialogState.Loading(
+                    message = BitwardenString.loading.asText(),
+                ),
+            )
+        }
+
+        viewModelScope.launch {
+            val result = vaultRepository
+                .getVaultItemStateFlow(itemId = state.cipherId)
+                .mapNotNull { it.data }
+                .firstWithTimeoutOrNull(timeMillis = GET_CIPHER_DURATION)
+                ?.let {
+                    vaultRepository.downloadAttachment(
+                        cipherView = it,
+                        attachmentId = state.attachmentId,
+                    )
+                }
+                ?: DownloadAttachmentResult.Failure(IllegalStateException("Cipher was missing."))
+
+            when (result) {
+                is DownloadAttachmentResult.Failure -> {
+                    mutableStateFlow.update {
+                        it.copy(
+                            dialogState = PreviewAttachmentState.DialogState.Error(
+                                title = BitwardenString.an_error_has_occurred.asText(),
+                                message = BitwardenString.unable_to_download_file.asText(),
+                                throwable = result.error,
+                            ),
+                        )
+                    }
+                }
+
+                is DownloadAttachmentResult.Success -> {
+                    mutableStateFlow.update { it.copy(dialogState = null) }
+                    sendEvent(
+                        PreviewAttachmentEvent.ShareFile(
+                            fileName = state.fileName,
+                            file = result.file,
+                        ),
+                    )
+                }
+            }
         }
     }
 
@@ -509,6 +559,14 @@ sealed class PreviewAttachmentEvent {
     ) : PreviewAttachmentEvent()
 
     /**
+     * Share the given [file].
+     */
+    data class ShareFile(
+        val fileName: String,
+        val file: File,
+    ) : PreviewAttachmentEvent()
+
+    /**
      * Displays the given [data] as a snackbar.
      */
     data class ShowSnackbar(
@@ -558,6 +616,11 @@ sealed class PreviewAttachmentAction {
      * User clicked to confirm that they want to download the file.
      */
     data object ConfirmDownloadClick : PreviewAttachmentAction()
+
+    /**
+     * User clicked the share button.
+     */
+    data object ShareClick : PreviewAttachmentAction()
 
     /**
      * The bitmap has been rendered from file.
@@ -633,5 +696,6 @@ private val String.isPreviewable: Boolean
             lowercasedFileName.endsWith(".jpeg") ||
             lowercasedFileName.endsWith(".gif") ||
             lowercasedFileName.endsWith(".webp") ||
-            lowercasedFileName.endsWith(".bmp")
+            lowercasedFileName.endsWith(".bmp") ||
+            lowercasedFileName.endsWith(".pdf")
     }

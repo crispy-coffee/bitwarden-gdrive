@@ -158,7 +158,10 @@ fun CipherView.toViewState(
             notes = this.notes.orEmpty(),
             availableOwners = emptyList(),
             hasOrganizations = false,
-            customFieldData = this.fields.orEmpty().map { it.toCustomField() },
+            customFieldData = this.fields
+                .orEmpty()
+                .filter { it.name?.startsWith("__gdrive_attach_") != true }
+                .map { it.toCustomField() },
             canDelete = canDelete,
             canAssignToCollections = canAssignToCollections,
             archiveCalloutText = if (this.archivedDate != null && isPremium) {

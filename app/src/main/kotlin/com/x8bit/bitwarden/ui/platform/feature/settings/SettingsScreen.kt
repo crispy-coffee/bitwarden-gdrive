@@ -53,6 +53,7 @@ fun SettingsScreen(
     onNavigateToOther: () -> Unit,
     onNavigateToVault: () -> Unit,
     onNavigateToPlan: () -> Unit,
+    onNavigateToGoogleDrive: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
     intentManager: IntentManager = LocalIntentManager.current,
 ) {
@@ -68,6 +69,7 @@ fun SettingsScreen(
             SettingsEvent.NavigateVault -> onNavigateToVault()
             SettingsEvent.NavigateAccountSecurityShortcut -> onNavigateToAccountSecurity()
             SettingsEvent.NavigatePlan -> onNavigateToPlan()
+            SettingsEvent.NavigateGoogleDrive -> onNavigateToGoogleDrive()
             is SettingsEvent.NavigateToUrl -> intentManager.launchUri(event.url.toUri())
         }
     }

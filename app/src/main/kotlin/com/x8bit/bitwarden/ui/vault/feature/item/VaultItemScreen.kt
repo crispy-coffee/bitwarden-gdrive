@@ -136,6 +136,10 @@ fun VaultItemScreen(
                     ),
                 )
             }
+
+            is VaultItemEvent.ShareFile -> {
+                intentManager.shareFile(title = event.fileName, fileUri = event.file.toUri())
+            }
         }
     }
 

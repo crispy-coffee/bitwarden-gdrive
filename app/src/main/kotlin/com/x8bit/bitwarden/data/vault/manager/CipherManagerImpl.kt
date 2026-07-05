@@ -18,12 +18,16 @@ import com.bitwarden.network.model.UnarchiveCipherResponseJson
 import com.bitwarden.network.model.UpdateCipherCollectionsJsonRequest
 import com.bitwarden.network.model.UpdateCipherResponseJson
 import com.bitwarden.network.service.CiphersService
+import com.bitwarden.ui.platform.util.formatBytes
 import com.bitwarden.vault.AttachmentView
 import com.bitwarden.vault.CipherView
 import com.bitwarden.vault.EncryptionContext
+import com.bitwarden.vault.FieldType
+import com.bitwarden.vault.FieldView
 import com.x8bit.bitwarden.data.auth.datasource.disk.AuthDiskSource
 import com.x8bit.bitwarden.data.platform.datasource.disk.SettingsDiskSource
 import com.x8bit.bitwarden.data.platform.error.NoActiveUserException
+import com.x8bit.bitwarden.data.platform.manager.GoogleDriveManager
 import com.x8bit.bitwarden.data.platform.manager.PushManager
 import com.x8bit.bitwarden.data.platform.manager.ReviewPromptManager
 import com.x8bit.bitwarden.data.platform.manager.model.SyncCipherDeleteData
@@ -65,6 +69,7 @@ class CipherManagerImpl(
     private val vaultSdkSource: VaultSdkSource,
     private val clock: Clock,
     private val reviewPromptManager: ReviewPromptManager,
+    private val googleDriveManager: GoogleDriveManager,
     dispatcherManager: DispatcherManager,
     pushManager: PushManager,
 ) : CipherManager {
@@ -302,6 +307,29 @@ class CipherManagerImpl(
         cipherView: CipherView,
     ): Result<EncryptionContext> {
         val userId = activeUserId ?: return NoActiveUserException().asFailure()
+
+        if (attachmentId.startsWith("gdrive_")) {
+            val driveFileId = attachmentId.removePrefix("gdrive_")
+            val driveDeleteResult = googleDriveManager.deleteFile(driveFileId)
+            if (driveDeleteResult.isFailure) {
+                return IllegalStateException("Google Drive delete failed. Please check your Google Drive connection in Settings.").asFailure()
+            }
+
+            val updatedCipherView = cipherView.copy(
+                attachments = cipherView.attachments?.filter { it.id != attachmentId },
+                fields = cipherView.fields?.filter { it.name != "__gdrive_attach_$attachmentId" },
+            )
+
+            val updateResult = updateCipher(cipherId, updatedCipherView)
+            return if (updateResult is UpdateCipherResult.Success) {
+                updatedCipherView.encryptCipherAndCheckForMigration(userId = userId, cipherId = cipherId)
+            } else {
+                val error = (updateResult as? UpdateCipherResult.Error)?.error
+                    ?: IllegalStateException((updateResult as? UpdateCipherResult.Error)?.errorMessage ?: "Update failed")
+                error.asFailure()
+            }
+        }
+
         return ciphersService
             .deleteCipherAttachment(
                 cipherId = cipherId,
@@ -505,76 +533,42 @@ class CipherManagerImpl(
         fileUri: Uri,
     ): Result<CipherView> {
         val userId = activeUserId ?: return NoActiveUserException().asFailure()
-        val attachmentView = AttachmentView(
-            id = null,
-            url = null,
-            size = fileSizeBytes,
-            sizeName = null,
-            fileName = fileName,
-            key = null,
-        )
-        return cipherView
-            .encryptCipherAndCheckForMigration(
-                userId = userId,
-                cipherId = requireNotNull(cipherView.id),
-            )
-            .flatMap { encryptionContext ->
-                fileManager
-                    .writeUriToCache(fileUri = fileUri)
-                    .flatMap { cacheFile ->
-                        vaultSdkSource
-                            .encryptAttachment(
-                                userId = userId,
-                                cipher = encryptionContext.cipher,
-                                attachmentView = attachmentView,
-                                decryptedFilePath = cacheFile.absolutePath,
-                                encryptedFilePath = "${cacheFile.absolutePath}.enc",
-                            )
-                            .flatMap { attachment ->
-                                ciphersService
-                                    .createAttachment(
-                                        cipherId = cipherId,
-                                        body = attachment.toNetworkAttachmentRequest(),
-                                    )
-                            }
-                            .flatMap { attachmentResponse ->
-                                when (attachmentResponse) {
-                                    is AttachmentJsonResponse.Invalid -> {
-                                        return IllegalStateException(
-                                            attachmentResponse.message,
-                                        ).asFailure()
-                                    }
 
-                                    is AttachmentJsonResponse.Success -> {
-                                        val encryptedFile = File(
-                                            "${cacheFile.absolutePath}.enc",
-                                        )
-                                        ciphersService
-                                            .uploadAttachment(
-                                                attachment = attachmentResponse,
-                                                encryptedFile = encryptedFile,
-                                            )
-                                            .onSuccess {
-                                                fileManager.delete(cacheFile, encryptedFile)
-                                            }
-                                            .onFailure {
-                                                fileManager.delete(cacheFile, encryptedFile)
-                                            }
-                                    }
-                                }
-                            }
-                    }
-            }
-            .map { it.copy(collectionIds = cipherView.collectionIds) }
-            .onSuccess {
-                // Save the send immediately, regardless of whether the decrypt succeeds
-                vaultDiskSource.saveCipher(userId = userId, cipher = it)
-            }
-            .flatMap {
-                vaultSdkSource.decryptCipher(
-                    userId = userId,
-                    cipher = it.toEncryptedSdkCipher(),
+        return fileManager.writeUriToCache(fileUri)
+            .flatMap { cacheFile ->
+                val driveFileId = googleDriveManager.uploadFile(cacheFile, fileName ?: "attachment")
+                    ?: return@flatMap IllegalStateException("Google Drive upload failed. Please check your Google Drive connection in Settings.").asFailure()
+
+                val sizeName = fileSizeBytes?.toLongOrNull()?.formatBytes()
+                val attachmentView = AttachmentView(
+                    id = "gdrive_$driveFileId",
+                    url = driveFileId,
+                    size = fileSizeBytes,
+                    sizeName = sizeName,
+                    fileName = fileName,
+                    key = null,
                 )
+
+                val attachmentField = FieldView(
+                    name = "__gdrive_attach_${attachmentView.id}",
+                    value = "v1:${attachmentView.fileName?.replace(":", "_")}:${attachmentView.size}:${attachmentView.sizeName}",
+                    type = FieldType.HIDDEN,
+                    linkedId = null,
+                )
+
+                val updatedCipherView = cipherView.copy(
+                    attachments = cipherView.attachments.orEmpty() + attachmentView,
+                    fields = cipherView.fields.orEmpty() + attachmentField,
+                )
+
+                val updateResult = updateCipher(cipherId, updatedCipherView)
+                if (updateResult is UpdateCipherResult.Success) {
+                    updatedCipherView.asSuccess()
+                } else {
+                    val error = (updateResult as? UpdateCipherResult.Error)?.error
+                        ?: IllegalStateException((updateResult as? UpdateCipherResult.Error)?.errorMessage ?: "Update failed")
+                    error.asFailure()
+                }
             }
     }
 
@@ -597,6 +591,50 @@ class CipherManagerImpl(
     ): Result<File> {
         val userId = activeUserId ?: return NoActiveUserException().asFailure()
 
+        var attachmentView = cipherView.attachments?.find { it.id == attachmentId }
+
+        // Fallback for Google Drive attachments stored in custom fields
+        if (attachmentView == null && attachmentId.startsWith("gdrive_")) {
+            cipherView.fields?.find { it.name == "__gdrive_attach_$attachmentId" }?.let { field ->
+                val value = field.value ?: ""
+                val parts = if (value.startsWith("v1:")) {
+                    value.removePrefix("v1:").split(":")
+                } else {
+                    value.split("|")
+                }
+                if (parts.size >= 3) {
+                    attachmentView = AttachmentView(
+                        id = attachmentId,
+                        url = attachmentId.removePrefix("gdrive_"),
+                        size = parts[1],
+                        sizeName = parts[2],
+                        fileName = parts[0],
+                        key = null,
+                    )
+                }
+            }
+        }
+
+        if (attachmentView == null) {
+            return IllegalStateException("No attachment to download").asFailure()
+        }
+        val finalAttachmentView = requireNotNull(attachmentView)
+
+        if (attachmentId.startsWith("gdrive_")) {
+            val driveFileId = attachmentId.removePrefix("gdrive_")
+            // Use a unique, safe filename in cache to avoid issues with long/special names from user
+            val originalName = finalAttachmentView.fileName ?: "gdrive_file"
+            val safeFileName = "gdrive_${driveFileId}_$originalName"
+            val targetFile = File(fileManager.cacheDirectory, safeFileName)
+            val downloadResult = googleDriveManager.downloadFile(driveFileId, targetFile)
+            return if (downloadResult.isSuccess) {
+                Result.success(targetFile)
+            } else {
+                val errorMsg = downloadResult.exceptionOrNull()?.message ?: "Unknown error"
+                IllegalStateException("Google Drive download failed: $errorMsg. Please check your Google Drive connection in Settings.").asFailure()
+            }
+        }
+
         val cipher = cipherView
             .encryptCipherAndCheckForMigration(
                 userId = userId,
@@ -606,8 +644,6 @@ class CipherManagerImpl(
                 onSuccess = { it.cipher },
                 onFailure = { return it.asFailure() },
             )
-        val attachmentView = cipherView.attachments?.find { it.id == attachmentId }
-            ?: return IllegalStateException("No attachment to download").asFailure()
 
         val attachmentData = ciphersService
             .getCipherAttachment(

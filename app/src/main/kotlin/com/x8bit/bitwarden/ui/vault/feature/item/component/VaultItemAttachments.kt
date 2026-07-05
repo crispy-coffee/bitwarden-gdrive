@@ -49,6 +49,7 @@ fun LazyListScope.vaultItemAttachments(
             attachmentItem = attachmentItem,
             onAttachmentDownloadClick = vaultCommonItemTypeHandlers.onAttachmentDownloadClick,
             onAttachmentPreviewClick = vaultCommonItemTypeHandlers.onAttachmentPreviewClick,
+            onAttachmentShareClick = vaultCommonItemTypeHandlers.onAttachmentShareClick,
             onUpgradeToPremiumClick = vaultCommonItemTypeHandlers.onUpgradeToPremiumClick,
             cardStyle = attachments.toListItemCardStyle(index = index),
             modifier = Modifier

@@ -192,6 +192,7 @@ class VaultAddEditViewModel @Inject constructor(
                     .getFeatureFlag(FlagKey.CardScanner) && !buildInfoManager.isFdroid,
                 vaultAddEditType = vaultAddEditType,
                 cipherType = vaultCipherType,
+                hasPremium = true,
                 viewState = when (vaultAddEditType) {
                     is VaultAddEditType.AddItem -> {
                         autofillSelectionData
@@ -226,7 +227,6 @@ class VaultAddEditViewModel @Inject constructor(
                 shouldShowCoachMarkTour = false,
                 shouldClearSpecialCircumstance = autofillSelectionData == null,
                 defaultUriMatchType = settingsRepository.defaultUriMatchType,
-                hasPremium = authRepository.userStateFlow.value?.activeAccount?.isPremium == true,
             )
         },
 ) {
@@ -245,7 +245,17 @@ class VaultAddEditViewModel @Inject constructor(
             .map { vaultDataState ->
                 VaultAddEditAction.Internal.VaultDataReceive(
                     vaultData = vaultDataState,
-                    userData = authRepository.userStateFlow.value,
+                    userData = authRepository.userStateFlow.value?.let { userState ->
+                        userState.copy(
+                            accounts = userState.accounts.map { account ->
+                                if (account.userId == userState.activeUserId) {
+                                    account.copy(isPremium = true)
+                                } else {
+                                    account
+                                }
+                            },
+                        )
+                    },
                 )
             }
             .onEach(::sendAction)
@@ -469,7 +479,6 @@ class VaultAddEditViewModel @Inject constructor(
                         callingAppInfo = this.callingAppInfo,
                         cipherView = content.toCipherView(
                             clock = clock,
-                            isPremiumUser = state.hasPremium,
                         ),
                     )
                     return@onContent
@@ -488,7 +497,6 @@ class VaultAddEditViewModel @Inject constructor(
                         cipherId = vaultAddEditType.vaultItemId,
                         cipherView = content.toCipherView(
                             clock = clock,
-                            isPremiumUser = state.hasPremium,
                         ),
                     )
                     sendAction(VaultAddEditAction.Internal.UpdateCipherResultReceive(result))
@@ -749,7 +757,6 @@ class VaultAddEditViewModel @Inject constructor(
                                 callingAppInfo = request.callingAppInfo,
                                 cipherView = content.toCipherView(
                                     clock = clock,
-                                    isPremiumUser = state.hasPremium,
                                 ),
                             )
                         }
@@ -783,7 +790,6 @@ class VaultAddEditViewModel @Inject constructor(
                                 callingAppInfo = request.callingAppInfo,
                                 cipherView = content.toCipherView(
                                     clock = clock,
-                                    isPremiumUser = state.hasPremium,
                                 ),
                             )
                         }
@@ -2656,13 +2662,12 @@ class VaultAddEditViewModel @Inject constructor(
                 vaultRepository.createCipherInOrganization(
                     cipherView = toCipherView(
                         clock = clock,
-                        isPremiumUser = state.hasPremium,
                     ),
                     collectionIds = it,
                 )
             }
             ?: vaultRepository.createCipher(
-                cipherView = toCipherView(clock = clock, isPremiumUser = state.hasPremium),
+                cipherView = toCipherView(clock = clock),
             )
     }
 

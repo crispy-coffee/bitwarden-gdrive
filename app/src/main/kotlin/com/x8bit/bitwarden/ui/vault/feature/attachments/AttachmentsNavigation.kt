@@ -37,12 +37,14 @@ fun NavGraphBuilder.attachmentDestination(
     onNavigateBack: () -> Unit,
     onNavigateToPreviewAttachment: (route: PreviewAttachmentRoute) -> Unit,
     onNavigateToPlan: () -> Unit,
+    onNavigateToGoogleDrive: () -> Unit,
 ) {
     composableWithSlideTransitions<AttachmentsRoute> {
         AttachmentsScreen(
             onNavigateBack = onNavigateBack,
             onNavigateToPreview = onNavigateToPreviewAttachment,
             onNavigateToPlan = onNavigateToPlan,
+            onNavigateToGoogleDrive = onNavigateToGoogleDrive,
         )
     }
 }

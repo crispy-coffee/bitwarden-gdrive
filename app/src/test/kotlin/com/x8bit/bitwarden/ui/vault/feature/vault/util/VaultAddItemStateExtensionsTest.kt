@@ -64,7 +64,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = loginItemType.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = loginItemType.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             CipherView(
@@ -153,7 +153,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             @Suppress("MaxLineLength")
@@ -245,7 +245,7 @@ class VaultAddItemStateExtensionsTest {
             type = VaultAddEditState.ViewState.Content.ItemType.SecureNotes,
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             CipherView(
@@ -322,7 +322,7 @@ class VaultAddItemStateExtensionsTest {
             type = VaultAddEditState.ViewState.Content.ItemType.SecureNotes,
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             cipherView.copy(
@@ -379,7 +379,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             CipherView(
@@ -484,7 +484,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             @Suppress("MaxLineLength")
@@ -586,7 +586,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             CipherView(
@@ -667,7 +667,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             CipherView(
@@ -741,7 +741,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             CipherView(
@@ -822,7 +822,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             cipherView.copy(
@@ -892,7 +892,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             CipherView(
@@ -970,7 +970,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = false)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             cipherView.copy(
@@ -1024,7 +1024,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             cipherView.copy(
@@ -1068,7 +1068,7 @@ class VaultAddItemStateExtensionsTest {
 
         // We need to pass in a future clock to make sure that when the
         // revision date is updated it is updated to a new time
-        val result = viewState.toCipherView(clock = futureClock, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = futureClock)
 
         assertNotEquals(
             viewState.common.originalCipher?.login?.passwordRevisionDate,
@@ -1101,7 +1101,7 @@ class VaultAddItemStateExtensionsTest {
 
         // We need to pass in a future clock to make sure that if the
         // revision date were to be updated it would be updated to a new time
-        val result = viewState.toCipherView(clock = futureClock, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = futureClock)
 
         assertEquals(
             viewState.common.originalCipher?.login?.passwordRevisionDate,
@@ -1137,7 +1137,7 @@ class VaultAddItemStateExtensionsTest {
 
         // We need to pass in a future clock to make sure that if the
         // revision date were to be updated it would be updated to a new time
-        val result = viewState.toCipherView(clock = futureClock, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = futureClock)
 
         assertEquals(
             viewState.common.originalCipher?.login?.passwordRevisionDate,
@@ -1185,7 +1185,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             CipherView(
@@ -1265,7 +1265,7 @@ class VaultAddItemStateExtensionsTest {
             ),
         )
 
-        val result = viewState.toCipherView(clock = FIXED_CLOCK, isPremiumUser = true)
+        val result = viewState.toCipherView(clock = FIXED_CLOCK)
 
         assertEquals(
             cipherView.copy(

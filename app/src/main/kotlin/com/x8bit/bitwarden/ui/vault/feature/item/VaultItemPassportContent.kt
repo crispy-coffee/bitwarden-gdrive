@@ -539,6 +539,7 @@ private val PREVIEW_COMMON_HANDLERS: VaultCommonItemTypeHandlers =
         onShowHiddenFieldClick = { _, _ -> },
         onAttachmentDownloadClick = {},
         onAttachmentPreviewClick = {},
+        onAttachmentShareClick = {},
         onCopyNotesClick = {},
         onPasswordHistoryClick = {},
         onPremiumRequiredClick = {},

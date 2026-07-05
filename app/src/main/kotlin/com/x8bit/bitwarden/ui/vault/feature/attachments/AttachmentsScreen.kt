@@ -46,6 +46,7 @@ fun AttachmentsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToPreview: (route: PreviewAttachmentRoute) -> Unit,
     onNavigateToPlan: () -> Unit,
+    onNavigateToGoogleDrive: () -> Unit,
 ) {
     val state by viewModel.stateFlow.collectAsStateWithLifecycle()
     val attachmentsHandlers = remember(viewModel) { AttachmentsHandlers.create(viewModel) }
@@ -67,6 +68,7 @@ fun AttachmentsScreen(
             }
 
             is AttachmentsEvent.ShowSnackbar -> snackbarHostState.showSnackbar(event.data)
+            AttachmentsEvent.NavigateToGoogleDrive -> onNavigateToGoogleDrive()
             is AttachmentsEvent.NavigateToPreview -> {
                 onNavigateToPreview(
                     PreviewAttachmentRoute(
@@ -139,16 +141,6 @@ private fun AttachmentsDialogs(
     attachmentsHandlers: AttachmentsHandlers,
 ) {
     when (dialogState) {
-        AttachmentsState.DialogState.RequiresPremium -> BitwardenTwoButtonDialog(
-            title = stringResource(id = BitwardenString.premium_subscription_required),
-            message = stringResource(id = BitwardenString.attachments_are_a_premium_feature),
-            confirmButtonText = stringResource(id = BitwardenString.upgrade_to_premium),
-            onConfirmClick = attachmentsHandlers.onUpgradeToPremiumClick,
-            dismissButtonText = stringResource(id = BitwardenString.cancel),
-            onDismissClick = attachmentsHandlers.onDismissRequest,
-            onDismissRequest = attachmentsHandlers.onDismissRequest,
-        )
-
         is AttachmentsState.DialogState.Error -> BitwardenBasicDialog(
             title = dialogState.title?.invoke(),
             message = dialogState.message(),
@@ -160,6 +152,16 @@ private fun AttachmentsDialogs(
             text = dialogState.message(),
         )
 
-        null -> Unit
+        AttachmentsState.DialogState.GoogleDriveConnectionError -> BitwardenTwoButtonDialog(
+            title = stringResource(id = BitwardenString.an_error_has_occurred),
+            message = "Google Drive is not connected. Please connect it in Settings to upload attachments.",
+            confirmButtonText = stringResource(id = BitwardenString.settings),
+            dismissButtonText = stringResource(id = BitwardenString.cancel),
+            onConfirmClick = { attachmentsHandlers.onConnectGoogleDriveClick() },
+            onDismissClick = attachmentsHandlers.onDismissRequest,
+            onDismissRequest = attachmentsHandlers.onDismissRequest,
+        )
+
+        null, AttachmentsState.DialogState.RequiresPremium -> Unit
     }
 }

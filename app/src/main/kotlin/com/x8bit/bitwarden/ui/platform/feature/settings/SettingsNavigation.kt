@@ -31,6 +31,7 @@ import com.x8bit.bitwarden.ui.platform.feature.settings.flightrecorder.flightRec
 import com.x8bit.bitwarden.ui.platform.feature.settings.flightrecorder.navigateToFlightRecorder
 import com.x8bit.bitwarden.ui.platform.feature.settings.flightrecorder.recordedLogs.navigateToRecordedLogs
 import com.x8bit.bitwarden.ui.platform.feature.settings.flightrecorder.recordedLogs.recordedLogsDestination
+import com.x8bit.bitwarden.ui.platform.feature.settings.googledrive.GoogleDriveScreen
 import com.x8bit.bitwarden.ui.platform.feature.settings.other.navigateToOther
 import com.x8bit.bitwarden.ui.platform.feature.settings.other.otherDestination
 import com.x8bit.bitwarden.ui.platform.feature.settings.vault.navigateToVaultSettings
@@ -92,6 +93,20 @@ sealed class SettingsRoute : Parcelable {
          */
         class Serializer : ParcelableRouteSerializer<PreAuth>(PreAuth::class)
     }
+
+    /**
+     * The type-safe route for the google drive screen.
+     */
+    @Parcelize
+    @Serializable(with = GoogleDrive.Serializer::class)
+    data object GoogleDrive : SettingsRoute() {
+        override val isPreAuth: Boolean get() = false
+
+        /**
+         * Custom serializer to support polymorphic routes.
+         */
+        class Serializer : ParcelableRouteSerializer<GoogleDrive>(GoogleDrive::class)
+    }
 }
 
 /**
@@ -141,6 +156,12 @@ fun NavGraphBuilder.settingsGraph(
                 onNavigateToOther = { navController.navigateToOther(isPreAuth = false) },
                 onNavigateToVault = { navController.navigateToVaultSettings() },
                 onNavigateToPlan = { navController.navigateToPlan() },
+                onNavigateToGoogleDrive = { navController.navigate(SettingsRoute.GoogleDrive) }
+            )
+        }
+        composableWithRootPushTransitions<SettingsRoute.GoogleDrive> {
+            GoogleDriveScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         aboutDestination(
@@ -208,6 +229,7 @@ fun NavGraphBuilder.preAuthSettingsDestinations(
             onNavigateToAutoFill = { /* no-op */ },
             onNavigateToVault = { /* no-op */ },
             onNavigateToPlan = { /* no-op */ },
+            onNavigateToGoogleDrive = { /* no-op */ },
         )
     }
     appearanceDestination(

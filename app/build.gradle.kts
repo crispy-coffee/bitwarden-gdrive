@@ -160,6 +160,15 @@ configure<ApplicationExtension> {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/INDEX.LIST"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/LICENSE"
+            excludes += "META-INF/LICENSE.txt"
+            excludes += "META-INF/license.txt"
+            excludes += "META-INF/NOTICE"
+            excludes += "META-INF/NOTICE.txt"
+            excludes += "META-INF/notice.txt"
+            excludes += "META-INF/ASL2.0"
         }
     }
     testOptions {
@@ -293,6 +302,10 @@ dependencies {
 
     // Standard-specific flavor dependencies
     standardImplementation(libs.google.billing)
+    standardImplementation(libs.google.drive)
+    standardImplementation(libs.google.api.client)
+    standardImplementation(libs.google.api.http.gson)
+    standardImplementation(libs.google.play.services.auth)
     standardImplementation(platform(libs.google.firebase.bom))
     standardImplementation(libs.google.firebase.cloud.messaging)
     standardImplementation(libs.google.firebase.crashlytics)

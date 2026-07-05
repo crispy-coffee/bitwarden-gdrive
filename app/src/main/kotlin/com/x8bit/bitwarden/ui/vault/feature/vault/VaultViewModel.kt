@@ -149,7 +149,7 @@ class VaultViewModel @Inject constructor(
             vaultFilterData = vaultFilterData,
             viewState = VaultState.ViewState.Loading,
             isIconLoadingDisabled = settingsRepository.isIconLoadingDisabled,
-            isPremium = activeAccount.isPremium,
+            isPremium = true,
             isPullToRefreshSettingEnabled = settingsRepository.getPullToRefreshEnabledFlow().value,
             baseIconUrl = activeAccount.environment.environmentUrlData.baseIconUrl,
             hasMasterPassword = activeAccount.hasMasterPassword,
@@ -161,9 +161,7 @@ class VaultViewModel @Inject constructor(
             restrictItemTypesPolicyOrgIds = emptyList(),
             cipherDecryptionFailureIds = persistentListOf(),
             hasShownDecryptionFailureAlert = false,
-            isIntroducingArchiveActionCardDismissed = settingsRepository
-                .getIntroducingArchiveActionCardDismissedFlow()
-                .value,
+            isIntroducingArchiveActionCardDismissed = true,
             validTotpIds = persistentSetOf(),
         )
     },
@@ -1382,7 +1380,7 @@ class VaultViewModel @Inject constructor(
         )
         val appBarTitle = vaultFilterData.toAppBarTitle()
         val previousIsPremium = state.isPremium
-        val nextIsPremium = userState.activeAccount.isPremium
+        val nextIsPremium = true
 
         mutableStateFlow.update {
             val accountSummaries = userState.toAccountSummaries()

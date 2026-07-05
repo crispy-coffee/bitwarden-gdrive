@@ -34,7 +34,6 @@ import java.time.Instant
  */
 fun VaultAddEditState.ViewState.Content.toCipherView(
     clock: Clock,
-    isPremiumUser: Boolean,
 ): CipherView =
     CipherView(
         // Pulled from original cipher when editing, otherwise uses defaults
@@ -56,7 +55,7 @@ fun VaultAddEditState.ViewState.Content.toCipherView(
         creationDate = common.originalCipher?.creationDate ?: clock.instant(),
         deletedDate = common.originalCipher?.deletedDate,
         revisionDate = common.originalCipher?.revisionDate ?: clock.instant(),
-        archivedDate = common.originalCipher?.archivedDate?.takeIf { isPremiumUser },
+        archivedDate = common.originalCipher?.archivedDate,
         attachmentDecryptionFailures = common.originalCipher?.attachmentDecryptionFailures,
 
         // Type specific section
@@ -77,7 +76,8 @@ fun VaultAddEditState.ViewState.Content.toCipherView(
         folderId = common.selectedFolderId,
         organizationId = common.selectedOwnerId,
         reprompt = common.toCipherRepromptType(),
-        fields = common.customFieldData.map { it.toFieldView() },
+        fields = common.customFieldData.map { it.toFieldView() } +
+            common.originalCipher?.fields?.filter { it.name?.startsWith("__gdrive_attach_") == true }.orEmpty(),
     )
 
 private fun VaultAddEditState.ViewState.Content.ItemType.toCipherType(): CipherType =

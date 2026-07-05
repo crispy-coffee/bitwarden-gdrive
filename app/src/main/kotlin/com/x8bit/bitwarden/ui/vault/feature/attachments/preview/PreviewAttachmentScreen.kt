@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bitwarden.ui.platform.base.util.EventsEffect
@@ -62,6 +63,9 @@ fun PreviewAttachmentScreen(
             is PreviewAttachmentEvent.NavigateToSelectAttachmentSaveLocation -> {
                 fileChooserLauncher.launch(intentManager.createDocumentIntent(event.fileName))
             }
+            is PreviewAttachmentEvent.ShareFile -> {
+                intentManager.shareFile(title = event.fileName, fileUri = event.file.toUri())
+            }
         }
     }
 
@@ -89,6 +93,14 @@ fun PreviewAttachmentScreen(
                 ),
                 actions = {
                     BitwardenStandardIconButton(
+                        vectorIconRes = BitwardenDrawable.ic_share_small,
+                        contentDescription = stringResource(id = BitwardenString.share),
+                        onClick = {
+                            viewModel.trySendAction(PreviewAttachmentAction.ShareClick)
+                        },
+                        modifier = Modifier.testTag("ToolbarShareButton"),
+                    )
+                    BitwardenStandardIconButton(
                         vectorIconRes = BitwardenDrawable.ic_download,
                         contentDescription = stringResource(id = BitwardenString.download),
                         onClick = {
@@ -106,18 +118,34 @@ fun PreviewAttachmentScreen(
     ) {
         when (val viewState = state.viewState) {
             is PreviewAttachmentState.ViewState.Content -> {
-                ImagePreviewContent(
-                    file = viewState.file,
-                    onMissingFile = {
-                        viewModel.trySendAction(PreviewAttachmentAction.FileMissing)
-                    },
-                    onLoaded = {
-                        viewModel.trySendAction(PreviewAttachmentAction.BitmapRenderComplete)
-                    },
-                    onError = {
-                        viewModel.trySendAction(PreviewAttachmentAction.BitmapRenderError)
-                    },
-                )
+                if (state.fileName.lowercase().endsWith(".pdf")) {
+                    BitwardenErrorContent(
+                        message = stringResource(
+                            id = BitwardenString.preview_not_available_for_files,
+                            "PDF",
+                        ),
+                        illustrationData = IconData.Local(iconRes = BitwardenDrawable.ic_file_text),
+                        buttonData = BitwardenButtonData(
+                            label = BitwardenString.share.asText(),
+                            icon = rememberVectorPainter(id = BitwardenDrawable.ic_share_small),
+                            onClick = { viewModel.trySendAction(PreviewAttachmentAction.ShareClick) },
+                        ),
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else {
+                    ImagePreviewContent(
+                        file = viewState.file,
+                        onMissingFile = {
+                            viewModel.trySendAction(PreviewAttachmentAction.FileMissing)
+                        },
+                        onLoaded = {
+                            viewModel.trySendAction(PreviewAttachmentAction.BitmapRenderComplete)
+                        },
+                        onError = {
+                            viewModel.trySendAction(PreviewAttachmentAction.BitmapRenderError)
+                        },
+                    )
+                }
             }
 
             is PreviewAttachmentState.ViewState.Error -> BitwardenErrorContent(

@@ -18,6 +18,11 @@ interface FileManager {
     val filesDirectory: String
 
     /**
+     * Absolute path to the private cache directory.
+     */
+    val cacheDirectory: String
+
+    /**
      * Absolute path to the private logs storage directory.
      */
     val logsDirectory: String

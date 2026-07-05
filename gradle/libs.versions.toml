@@ -36,6 +36,7 @@ firebaseBom = "34.15.0"
 glide = "5.0.7"
 glideCompose = "1.0.0-beta01"
 googleBilling = "9.0.0"
+googleDrive = "v3-rev20260624-2.0.0"
 googleMlkitTextRecognition = "16.0.1"
 googleGuava = "33.6.0-jre"
 googleProtoBufJava = "4.35.1"
@@ -106,6 +107,10 @@ bumptech-glide-compiler = { module = "com.github.bumptech.glide:ksp", version.re
 detekt-detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 detekt-detekt-rules = { module = "io.gitlab.arturbosch.detekt:detekt-rules-libraries", version.ref = "detekt" }
 google-billing = { module = "com.android.billingclient:billing", version.ref = "googleBilling" }
+google-drive = { module = "com.google.apis:google-api-services-drive", version.ref = "googleDrive" }
+google-api-client = { module = "com.google.api-client:google-api-client-android", version = "2.9.0" }
+google-api-http-gson = { module = "com.google.http-client:google-http-client-gson", version = "2.1.1" }
+google-play-services-auth = { module = "com.google.android.gms:play-services-auth", version = "21.6.0" }
 google-firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 google-firebase-cloud-messaging = { module = "com.google.firebase:firebase-messaging" }
 google-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }

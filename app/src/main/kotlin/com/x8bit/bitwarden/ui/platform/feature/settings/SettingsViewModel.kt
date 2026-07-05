@@ -188,6 +188,10 @@ class SettingsViewModel @Inject constructor(
                 sendEvent(SettingsEvent.NavigateOther)
             }
 
+            Settings.GOOGLE_DRIVE -> {
+                sendEvent(SettingsEvent.NavigateGoogleDrive)
+            }
+
             Settings.ABOUT -> {
                 sendEvent(SettingsEvent.NavigateAbout)
             }
@@ -231,6 +235,7 @@ data class SettingsState(
                 Settings.ACCOUNT_SECURITY -> !isPreAuth
                 Settings.AUTO_FILL -> !isPreAuth
                 Settings.VAULT -> !isPreAuth
+                Settings.GOOGLE_DRIVE -> !isPreAuth
                 Settings.APPEARANCE -> true
                 Settings.PLAN -> shouldShowPlanRow
                 Settings.OTHER -> true
@@ -289,6 +294,11 @@ sealed class SettingsEvent {
      * Navigate to the vault screen.
      */
     data object NavigateVault : SettingsEvent()
+
+    /**
+     * Navigate to the google drive screen.
+     */
+    data object NavigateGoogleDrive : SettingsEvent()
 
     /**
      * Navigate to the plan screen.
@@ -406,6 +416,11 @@ enum class Settings(
         text = BitwardenString.other.asText(),
         vectorIconRes = BitwardenDrawable.ic_filter,
         testTag = "OtherSettingsButton",
+    ),
+    GOOGLE_DRIVE(
+        text = BitwardenString.google_drive.asText(),
+        vectorIconRes = BitwardenDrawable.ic_archive,
+        testTag = "GoogleDriveSettingsButton",
     ),
     ABOUT(
         text = BitwardenString.about.asText(),

@@ -21,6 +21,7 @@ import com.x8bit.bitwarden.data.auth.manager.UserStateManager
 import com.x8bit.bitwarden.data.autofill.manager.FillAssistManager
 import com.x8bit.bitwarden.data.platform.datasource.disk.SettingsDiskSource
 import com.x8bit.bitwarden.data.platform.manager.DatabaseSchemeManager
+import com.x8bit.bitwarden.data.platform.manager.GoogleDriveManager
 import com.x8bit.bitwarden.data.platform.manager.FeatureFlagManager
 import com.x8bit.bitwarden.data.platform.manager.PolicyManager
 import com.x8bit.bitwarden.data.platform.manager.PushManager
@@ -108,6 +109,7 @@ object VaultManagerModule {
         reviewPromptManager: ReviewPromptManager,
         dispatcherManager: DispatcherManager,
         pushManager: PushManager,
+        googleDriveManager: GoogleDriveManager,
     ): CipherManager = CipherManagerImpl(
         fileManager = fileManager,
         settingsDiskSource = settingsDiskSource,
@@ -119,6 +121,7 @@ object VaultManagerModule {
         reviewPromptManager = reviewPromptManager,
         dispatcherManager = dispatcherManager,
         pushManager = pushManager,
+        googleDriveManager = googleDriveManager,
     )
 
     @Provides

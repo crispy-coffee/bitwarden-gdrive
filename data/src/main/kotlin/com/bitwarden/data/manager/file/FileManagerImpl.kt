@@ -39,6 +39,9 @@ internal class FileManagerImpl(
     override val filesDirectory: String
         get() = context.filesDir.absolutePath
 
+    override val cacheDirectory: String
+        get() = context.cacheDir.absolutePath
+
     override val logsDirectory: String
         get() = "${context.dataDir}/logs"
 

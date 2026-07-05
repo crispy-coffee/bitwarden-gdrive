@@ -18,6 +18,7 @@ data class AttachmentsHandlers(
     val onDismissRequest: () -> Unit,
     val onFileNameChange: (String) -> Unit,
     val onUpgradeToPremiumClick: () -> Unit,
+    val onConnectGoogleDriveClick: () -> Unit,
 ) {
     @Suppress("UndocumentedPublicClass")
     companion object {
@@ -41,6 +42,9 @@ data class AttachmentsHandlers(
                 },
                 onUpgradeToPremiumClick = {
                     viewModel.trySendAction(AttachmentsAction.UpgradeToPremiumClick)
+                },
+                onConnectGoogleDriveClick = {
+                    viewModel.trySendAction(AttachmentsAction.ConnectGoogleDriveClick)
                 },
             )
     }

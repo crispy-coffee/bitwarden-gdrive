@@ -143,15 +143,48 @@ internal class IntentManagerImpl(
     }
 
     override fun shareFile(title: String?, fileUri: Uri) {
+        val file = if (fileUri.scheme == "file") {
+            File(fileUri.path!!)
+        } else {
+            File(fileUri.toString())
+        }
+
+        val sharedFile = if (title != null && title != file.name) {
+            val originalExtension = MimeTypeMap.getFileExtensionFromUrl(file.name)
+                .let { if (it.isNotEmpty()) ".$it" else "" }
+            val titleExtension = MimeTypeMap.getFileExtensionFromUrl(title)
+                .let { if (it.isNotEmpty()) ".$it" else "" }
+
+            val baseTitle = if (titleExtension.isNotEmpty()) {
+                title.substringBeforeLast(".")
+            } else {
+                title
+            }
+            val finalExtension = if (titleExtension.isNotEmpty()) titleExtension else originalExtension
+            val newFile = File(file.parentFile, "$baseTitle$finalExtension")
+            try {
+                file.copyTo(newFile, overwrite = true)
+                newFile
+            } catch (e: Exception) {
+                file
+            }
+        } else {
+            file
+        }
+
         val providedFile = FileProvider.getUriForFile(
             activity,
             buildInfoManager.fileProviderAuthority,
-            File(fileUri.toString()),
+            sharedFile,
         )
         val sendIntent: Intent = Intent(Intent.ACTION_SEND).apply {
             putExtra(Intent.EXTRA_TEXT, title)
             putExtra(Intent.EXTRA_STREAM, providedFile)
-            type = "application/zip"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            val extension = MimeTypeMap.getFileExtensionFromUrl(sharedFile.name)
+            type = extension?.let {
+                MimeTypeMap.getSingleton().getMimeTypeFromExtension(it)
+            } ?: "application/octet-stream"
         }
         startActivity(Intent.createChooser(sendIntent, null))
     }
@@ -221,10 +254,15 @@ internal class IntentManagerImpl(
         Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             // Attempt to get the MIME type from the file extension
             val extension = MimeTypeMap.getFileExtensionFromUrl(fileName)
-            type = extension?.let {
+            val mimeType = extension?.let {
                 MimeTypeMap.getSingleton().getMimeTypeFromExtension(it)
             }
-                ?: "*/*"
+
+            type = if (mimeType == null && fileName.lowercase().endsWith(".pdf")) {
+                "application/pdf"
+            } else {
+                mimeType ?: "*/*"
+            }
 
             addCategory(Intent.CATEGORY_OPENABLE)
             putExtra(Intent.EXTRA_TITLE, fileName)

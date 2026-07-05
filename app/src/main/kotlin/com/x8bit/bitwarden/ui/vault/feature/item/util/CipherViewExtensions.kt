@@ -9,6 +9,7 @@ import com.bitwarden.ui.platform.base.util.orZeroWidthSpace
 import com.bitwarden.ui.platform.components.icon.model.IconData
 import com.bitwarden.ui.platform.resource.BitwardenDrawable
 import com.bitwarden.ui.platform.resource.BitwardenString
+import com.bitwarden.ui.platform.util.formatBytes
 import com.bitwarden.ui.util.Text
 import com.bitwarden.ui.util.asText
 import com.bitwarden.vault.CardView
@@ -20,6 +21,7 @@ import com.bitwarden.vault.FieldView
 import com.bitwarden.vault.IdentityView
 import com.bitwarden.vault.LoginUriView
 import com.x8bit.bitwarden.data.vault.repository.model.VaultData
+import com.x8bit.bitwarden.ui.vault.feature.attachments.util.TEN_MB_IN_BYTES
 import com.x8bit.bitwarden.ui.vault.feature.attachments.util.isLargeFile
 import com.x8bit.bitwarden.ui.vault.feature.item.VaultItemState
 import com.x8bit.bitwarden.ui.vault.feature.item.model.TotpCodeItemData
@@ -55,13 +57,42 @@ fun CipherView.toViewState(
     isIconLoadingDisabled: Boolean,
     relatedLocations: ImmutableList<VaultItemLocation>,
     hasOrganizations: Boolean,
-): VaultItemState.ViewState =
-    VaultItemState.ViewState.Content(
+): VaultItemState.ViewState {
+    val gdriveAttachmentsFromFields = fields
+        .orEmpty()
+        .filter { it.name?.startsWith("__gdrive_attach_") == true }
+        .mapNotNull { field ->
+            val id = field.name?.removePrefix("__gdrive_attach_") ?: return@mapNotNull null
+            val value = field.value ?: ""
+            val parts = if (value.startsWith("v1:")) {
+                value.removePrefix("v1:").split(":")
+            } else {
+                value.split("|")
+            }
+            if (parts.size < 3) return@mapNotNull null
+            val fileName = parts[0]
+            val sizeName = parts[2]
+            VaultItemState.ViewState.Content.Common.AttachmentItem(
+                id = id,
+                title = fileName,
+                displaySize = sizeName,
+                url = id.removePrefix("gdrive_"),
+                isLargeFile = try {
+                    (parts[1].toLongOrNull() ?: 0L) >= TEN_MB_IN_BYTES
+                } catch (_: Exception) {
+                    false
+                },
+                isDownloadAllowed = isPremiumUser || this.organizationId != null,
+            )
+        }
+
+    return VaultItemState.ViewState.Content(
         common = VaultItemState.ViewState.Content.Common(
             currentCipher = this,
             name = name,
             customFields = fields
                 .orEmpty()
+                .filter { it.name?.startsWith("__gdrive_attach_") != true }
                 .map { fieldView ->
                     fieldView.toCustomField(
                         previousState = previousState
@@ -87,28 +118,30 @@ fun CipherView.toViewState(
             ),
             notes = notes,
             requiresCloneConfirmation = login?.fido2Credentials?.any() ?: false,
-            attachments = attachments
+            attachments = (attachments
                 ?.mapNotNull {
-                    @Suppress("ComplexCondition")
-                    if (it.id == null ||
-                        it.fileName == null ||
-                        it.size == null ||
-                        it.sizeName == null ||
-                        it.url == null
-                    ) {
-                        null
-                    } else {
-                        VaultItemState.ViewState.Content.Common.AttachmentItem(
-                            id = requireNotNull(it.id),
-                            title = requireNotNull(it.fileName),
-                            displaySize = requireNotNull(it.sizeName),
-                            url = requireNotNull(it.url),
-                            isLargeFile = it.isLargeFile(),
-                            isDownloadAllowed = isPremiumUser || this.organizationId != null,
-                        )
-                    }
+                    val id = it.id ?: return@mapNotNull null
+                    val fileName = it.fileName ?: return@mapNotNull null
+
+                    // Recover missing URL for gdrive attachments
+                    val url = it.url ?: if (id.startsWith("gdrive_")) id.removePrefix("gdrive_") else null
+                    if (url == null) return@mapNotNull null
+
+                    // Recover missing sizeName if possible
+                    val sizeName = it.sizeName ?: it.size?.toLongOrNull()?.formatBytes()
+                    if (sizeName == null) return@mapNotNull null
+
+                    VaultItemState.ViewState.Content.Common.AttachmentItem(
+                        id = id,
+                        title = fileName,
+                        displaySize = sizeName,
+                        url = url,
+                        isLargeFile = it.isLargeFile(),
+                        isDownloadAllowed = isPremiumUser || this.organizationId != null,
+                    )
                 }
-                .orEmpty()
+                .orEmpty() + gdriveAttachmentsFromFields)
+                .distinctBy { it.id }
                 .toImmutableList(),
             canDelete = canDelete,
             canRestore = canRestore,
@@ -266,6 +299,7 @@ fun CipherView.toViewState(
             )
         },
     )
+}
 
 /**
  * Transforms [FieldView] into [VaultItemState.ViewState.Content.Common.Custom].

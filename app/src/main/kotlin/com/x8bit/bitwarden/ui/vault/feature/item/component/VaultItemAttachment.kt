@@ -40,6 +40,7 @@ fun VaultItemAttachment(
     attachmentItem: VaultItemState.ViewState.Content.Common.AttachmentItem,
     onAttachmentDownloadClick: (VaultItemState.ViewState.Content.Common.AttachmentItem) -> Unit,
     onAttachmentPreviewClick: (VaultItemState.ViewState.Content.Common.AttachmentItem) -> Unit,
+    onAttachmentShareClick: (VaultItemState.ViewState.Content.Common.AttachmentItem) -> Unit,
     onUpgradeToPremiumClick: () -> Unit,
     cardStyle: CardStyle,
     modifier: Modifier = Modifier,
@@ -94,6 +95,21 @@ fun VaultItemAttachment(
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
+
+                BitwardenStandardIconButton(
+                    vectorIconRes = BitwardenDrawable.ic_share_small,
+                    contentDescription = stringResource(id = BitwardenString.share),
+                    onClick = {
+                        if (!attachmentItem.isDownloadAllowed) {
+                            shouldShowPremiumWarningDialog = true
+                            return@BitwardenStandardIconButton
+                        }
+
+                        onAttachmentShareClick(attachmentItem)
+                    },
+                    modifier = Modifier
+                        .testTag("AttachmentShareButton"),
+                )
 
                 BitwardenStandardIconButton(
                     vectorIconRes = BitwardenDrawable.ic_download,

@@ -114,9 +114,13 @@ import com.x8bit.bitwarden.ui.vault.model.VaultItemCipherType
 import com.x8bit.bitwarden.ui.vault.util.toVaultItemCipherType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.flow.combine
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -195,7 +199,7 @@ class VaultItemListingViewModel @Inject constructor(
             fido2CredentialAssertionRequest = fido2AssertCredentialRequest,
             providerGetPasswordCredentialRequest = passwordGetCredentialRequest,
             getCredentialsRequest = providerGetCredentialsRequest,
-            isPremium = userState.activeAccount.isPremium,
+            isPremium = true,
             isRefreshing = false,
         )
     },
@@ -256,16 +260,19 @@ class VaultItemListingViewModel @Inject constructor(
             ?: observeVaultData()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private fun observeVaultData() {
-        vaultRepository
-            .vaultDataStateFlow
-            .map {
-                VaultItemListingsAction.Internal.VaultDataReceive(
-                    it
-                        .filterForAutofillIfNecessary()
-                        .filterForCredentialCreationIfNecessary()
-                        .filterForTotpIfNecessary(),
-                )
+        vaultRepository.vaultDataStateFlow
+            .flatMapLatest { vaultDataState ->
+                authRepository.userStateFlow.map { userState ->
+                    VaultItemListingsAction.Internal.VaultDataReceive(
+                        vaultData = vaultDataState
+                            .filterForAutofillIfNecessary()
+                            .filterForCredentialCreationIfNecessary()
+                            .filterForTotpIfNecessary(),
+                        userState = userState,
+                    )
+                }
             }
             .onEach(::sendAction)
             .launchIn(viewModelScope)
@@ -1973,10 +1980,31 @@ class VaultItemListingViewModel @Inject constructor(
     private fun handleVaultDataReceive(
         action: VaultItemListingsAction.Internal.VaultDataReceive,
     ) {
-        if (state.activeAccountSummary.userId != authRepository.userStateFlow.value?.activeUserId) {
+        val userState = action.userState?.let { us ->
+            us.copy(
+                accounts = us.accounts.map { account ->
+                    if (account.userId == us.activeUserId) {
+                        account.copy(isPremium = true)
+                    } else {
+                        account
+                    }
+                },
+            )
+        }
+        if (state.activeAccountSummary.userId != userState?.activeUserId) {
             // We are in the process of switching accounts, so we should ignore any updates here
             // to avoid any unnecessary visual changes.
             return
+        }
+
+        val accountSummaries = userState?.toAccountSummaries().orEmpty()
+        val activeAccountSummary = userState?.toActiveAccountSummary()
+        mutableStateFlow.update {
+            it.copy(
+                activeAccountSummary = activeAccountSummary ?: it.activeAccountSummary,
+                accountSummaries = accountSummaries,
+                isPremium = true,
+            )
         }
 
         when (val vaultData = action.vaultData) {
@@ -3986,6 +4014,7 @@ sealed class VaultItemListingsAction {
          */
         data class VaultDataReceive(
             val vaultData: DataState<VaultData>,
+            val userState: com.x8bit.bitwarden.data.auth.repository.model.UserState?,
         ) : Internal()
 
         /**

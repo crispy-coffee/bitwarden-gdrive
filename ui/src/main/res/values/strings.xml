@@ -98,6 +98,7 @@
     <string name="last_sync">Last sync:</string>
     <string name="length">Length</string>
     <string name="lock">Lock</string>
+    <string name="google_drive">Google Drive</string>
     <string name="fifteen_minutes">15 minutes</string>
     <string name="one_hour">1 hour</string>
     <string name="one_minute">1 minute</string>

@@ -58,12 +58,11 @@ class AttachmentsViewModel @Inject constructor(
     // We load the state from the savedStateHandle for testing purposes.
     initialState = savedStateHandle[KEY_STATE]
         ?: run {
-            val isPremiumUser = authRepo.userStateFlow.value?.activeAccount?.isPremium == true
+            val isPremiumUser = true
             AttachmentsState(
                 cipherId = savedStateHandle.toAttachmentsArgs().cipherId,
                 viewState = AttachmentsState.ViewState.Loading,
-                dialogState = AttachmentsState.DialogState.RequiresPremium
-                    .takeUnless { isPremiumUser },
+                dialogState = null,
                 isPremiumUser = isPremiumUser,
                 isAttachmentUpdatesEnabled = featureFlagManager.getFeatureFlag(
                     key = FlagKey.AttachmentUpdates,
@@ -103,6 +102,10 @@ class AttachmentsViewModel @Inject constructor(
             is AttachmentsAction.DeleteClick -> handleDeleteClick(action)
             is AttachmentsAction.ItemClick -> handleItemClick(action)
             is AttachmentsAction.Internal -> handleInternalAction(action)
+            AttachmentsAction.ConnectGoogleDriveClick -> {
+                mutableStateFlow.update { it.copy(dialogState = null) }
+                sendEvent(AttachmentsEvent.NavigateToGoogleDrive)
+            }
         }
     }
 
@@ -112,12 +115,6 @@ class AttachmentsViewModel @Inject constructor(
 
     private fun handleSaveClick() {
         onContent { content ->
-            if (!state.isPremiumUser) {
-                mutableStateFlow.update {
-                    it.copy(dialogState = AttachmentsState.DialogState.RequiresPremium)
-                }
-                return@onContent
-            }
             if (content.newAttachment == null) {
                 mutableStateFlow.update {
                     it.copy(
@@ -242,12 +239,6 @@ class AttachmentsViewModel @Inject constructor(
     }
 
     private fun handleItemClick(action: AttachmentsAction.ItemClick) {
-        if (!state.isPremiumUser) {
-            mutableStateFlow.update {
-                it.copy(dialogState = AttachmentsState.DialogState.RequiresPremium)
-            }
-            return
-        }
         sendEvent(
             AttachmentsEvent.NavigateToPreview(
                 cipherId = state.cipherId,
@@ -338,14 +329,21 @@ class AttachmentsViewModel @Inject constructor(
     ) {
         when (val result = action.result) {
             is CreateAttachmentResult.Error -> {
+                val isGoogleDriveError = result.error is IllegalStateException &&
+                    result.error.message?.contains("Google Drive") == true
+
                 mutableStateFlow.update {
                     it.copy(
-                        dialogState = AttachmentsState.DialogState.Error(
-                            title = BitwardenString.an_error_has_occurred.asText(),
-                            message = result.message?.asText()
-                                ?: BitwardenString.generic_error_message.asText(),
-                            throwable = result.error,
-                        ),
+                        dialogState = if (isGoogleDriveError) {
+                            AttachmentsState.DialogState.GoogleDriveConnectionError
+                        } else {
+                            AttachmentsState.DialogState.Error(
+                                title = BitwardenString.an_error_has_occurred.asText(),
+                                message = result.message?.asText()
+                                    ?: BitwardenString.generic_error_message.asText(),
+                                throwable = result.error,
+                            )
+                        },
                     )
                 }
             }
@@ -389,9 +387,9 @@ class AttachmentsViewModel @Inject constructor(
         }
     }
 
-    private fun handleUserStateReceive(action: AttachmentsAction.Internal.UserStateReceive) {
+    private fun handleUserStateReceive(@Suppress("UnusedParameter") action: AttachmentsAction.Internal.UserStateReceive) {
         mutableStateFlow.update {
-            it.copy(isPremiumUser = action.userState?.activeAccount?.isPremium == true)
+            it.copy(isPremiumUser = true)
         }
     }
 
@@ -496,6 +494,12 @@ data class AttachmentsState(
         data object RequiresPremium : DialogState()
 
         /**
+         * Represents a dismissible dialog indicating that Google Drive is not connected.
+         */
+        @Parcelize
+        data object GoogleDriveConnectionError : DialogState()
+
+        /**
          * Represents a dismissible dialog with the given error [message].
          */
         @Parcelize
@@ -523,6 +527,11 @@ sealed class AttachmentsEvent {
      * Navigates back.
      */
     data object NavigateBack : AttachmentsEvent()
+
+    /**
+     * Navigates to Google Drive settings.
+     */
+    data object NavigateToGoogleDrive : AttachmentsEvent()
 
     /**
      * Navigates to upgrade to the given Uri.
@@ -626,6 +635,11 @@ sealed class AttachmentsAction {
     data class ItemClick(
         val attachment: AttachmentsState.AttachmentItem,
     ) : AttachmentsAction()
+
+    /**
+     * User clicked to connect Google Drive.
+     */
+    data object ConnectGoogleDriveClick : AttachmentsAction()
 
     /**
      * Internal ViewModel actions.

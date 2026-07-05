@@ -127,7 +127,17 @@ class VaultItemViewModel @Inject constructor(
                 )
             }
             VaultItemAction.Internal.VaultDataReceive(
-                userState = userState,
+                userState = userState?.let { us ->
+                    us.copy(
+                        accounts = us.accounts.map { account ->
+                            if (account.userId == us.activeUserId) {
+                                account.copy(isPremium = true)
+                            } else {
+                                account
+                            }
+                        },
+                    )
+                },
                 vaultDataState = combineDataStates(
                     cipherViewState,
                     authCodeState,
@@ -279,6 +289,10 @@ class VaultItemViewModel @Inject constructor(
                 handleAttachmentPreviewClick(action)
             }
 
+            is VaultItemAction.Common.AttachmentShareClick -> {
+                handleAttachmentShareClick(action)
+            }
+
             is VaultItemAction.Common.AttachmentFileLocationReceive -> {
                 handleAttachmentFileLocationReceive(action)
             }
@@ -412,6 +426,46 @@ class VaultItemViewModel @Inject constructor(
                         fileName = action.attachment.title,
                     ),
                 )
+            }
+        }
+    }
+
+    private fun handleAttachmentShareClick(
+        action: VaultItemAction.Common.AttachmentShareClick,
+    ) {
+        onContent { content ->
+            updateDialogState(
+                VaultItemState.DialogState.Loading(BitwardenString.loading.asText()),
+            )
+
+            viewModelScope.launch {
+                val result = vaultRepository
+                    .downloadAttachment(
+                        cipherView = requireNotNull(content.common.currentCipher),
+                        attachmentId = action.attachment.id,
+                    )
+
+                when (result) {
+                    is DownloadAttachmentResult.Failure -> {
+                        updateDialogState(
+                            VaultItemState.DialogState.Generic(
+                                message = result.errorMessage?.asText()
+                                    ?: BitwardenString.unable_to_download_file.asText(),
+                                error = result.error,
+                            ),
+                        )
+                    }
+
+                    is DownloadAttachmentResult.Success -> {
+                        dismissDialog()
+                        sendEvent(
+                            VaultItemEvent.ShareFile(
+                                fileName = action.attachment.title,
+                                file = result.file,
+                            ),
+                        )
+                    }
+                }
             }
         }
     }
@@ -2476,6 +2530,14 @@ sealed class VaultItemEvent {
     ) : VaultItemEvent()
 
     /**
+     * Share the given [file].
+     */
+    data class ShareFile(
+        val fileName: String,
+        val file: File,
+    ) : VaultItemEvent()
+
+    /**
      * Displays the given [data] in a snackbar.
      */
     data class ShowSnackbar(
@@ -2622,6 +2684,13 @@ sealed class VaultItemAction {
          * The user has clicked the preview button.
          */
         data class AttachmentPreviewClick(
+            val attachment: VaultItemState.ViewState.Content.Common.AttachmentItem,
+        ) : Common()
+
+        /**
+         * The user has clicked the share button.
+         */
+        data class AttachmentShareClick(
             val attachment: VaultItemState.ViewState.Content.Common.AttachmentItem,
         ) : Common()
 
