@@ -1,5 +1,5 @@
 package com.x8bit.bitwarden.ui.vault.feature.itemlisting
-
+import kotlinx.collections.immutable.toImmutableList
 import android.os.Parcelable
 import androidx.annotation.DrawableRes
 import androidx.credentials.CreatePasswordRequest
@@ -1997,7 +1997,9 @@ class VaultItemListingViewModel @Inject constructor(
             return
         }
 
-        val accountSummaries = userState?.toAccountSummaries().orEmpty()
+        val accountSummaries =
+            userState?.toAccountSummaries()?.toImmutableList()
+                ?: persistentListOf()
         val activeAccountSummary = userState?.toActiveAccountSummary()
         mutableStateFlow.update {
             it.copy(

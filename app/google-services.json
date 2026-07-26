@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "527236202977",
+    "project_id": "bitwarden-custom",
+    "storage_bucket": "bitwarden-custom.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:527236202977:android:0dd1c75d98c61fe8d752a0",
+        "android_client_info": {
+          "package_name": "com.x8bit.bitwarden"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "527236202977-85dgdquv9gl4i4sejnokorm2objgjkbd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKDkhWd8am8rYUlRFGguCdUgkMPTrAGts"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "527236202977-85dgdquv9gl4i4sejnokorm2objgjkbd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

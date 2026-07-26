@@ -90,6 +90,13 @@ configure<ApplicationExtension> {
     }
 
     signingConfigs {
+        create("release") {
+            storeFile = file("../bitwarden-release.jks")
+            storePassword = "Bitwarden@devender"
+            keyAlias = "Bitwarden"
+            keyPassword = "Bitwarden@devender"
+        }
+
         getByName("debug") {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
@@ -111,6 +118,7 @@ configure<ApplicationExtension> {
 
         // Beta and Release variants are identical except beta has a different package name
         create("beta") {
+            signingConfig = signingConfigs.getByName("release")
             applicationIdSuffix = ".beta"
             isDebuggable = false
             isMinifyEnabled = true
@@ -125,6 +133,7 @@ configure<ApplicationExtension> {
             buildConfigField(type = "boolean", name = "HAS_LOGS_ENABLED", value = "false")
         }
         release {
+            signingConfig = signingConfigs.getByName("release")
             isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
