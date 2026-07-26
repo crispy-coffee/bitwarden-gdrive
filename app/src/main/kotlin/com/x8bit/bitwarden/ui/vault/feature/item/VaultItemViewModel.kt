@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.bitwarden.collections.CollectionView
 import com.bitwarden.core.data.repository.model.DataState
 import com.bitwarden.core.data.repository.util.combineDataStates
 import com.bitwarden.core.data.repository.util.mapNullable
@@ -23,16 +24,19 @@ import com.bitwarden.ui.util.asPluralsText
 import com.bitwarden.ui.util.asText
 import com.bitwarden.ui.util.concat
 import com.bitwarden.vault.CipherView
+import com.bitwarden.vault.FolderView
 import com.x8bit.bitwarden.data.auth.repository.AuthRepository
 import com.x8bit.bitwarden.data.auth.repository.model.BreachCountResult
 import com.x8bit.bitwarden.data.auth.repository.model.UserState
 import com.x8bit.bitwarden.data.billing.manager.PremiumStateManager
+import com.x8bit.bitwarden.data.platform.manager.GoogleDriveManager
 import com.x8bit.bitwarden.data.platform.manager.clipboard.BitwardenClipboardManager
 import com.x8bit.bitwarden.data.platform.manager.event.OrganizationEventManager
 import com.x8bit.bitwarden.data.platform.manager.model.OrganizationEvent
 import com.x8bit.bitwarden.data.platform.repository.EnvironmentRepository
 import com.x8bit.bitwarden.data.platform.repository.SettingsRepository
 import com.x8bit.bitwarden.data.platform.util.isActive
+import com.x8bit.bitwarden.data.vault.manager.model.VerificationCodeItem
 import com.x8bit.bitwarden.data.vault.repository.VaultRepository
 import com.x8bit.bitwarden.data.vault.repository.model.ArchiveCipherResult
 import com.x8bit.bitwarden.data.vault.repository.model.DeleteCipherResult
@@ -53,6 +57,7 @@ import com.x8bit.bitwarden.ui.vault.model.VaultLinkedFieldType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -83,6 +88,7 @@ class VaultItemViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val snackbarRelayManager: SnackbarRelayManager<SnackbarRelay>,
     private val premiumStateManager: PremiumStateManager,
+    private val googleDriveManager: GoogleDriveManager,
 ) : BaseViewModel<VaultItemState, VaultItemEvent, VaultItemAction>(
     // We load the state from the savedStateHandle for testing purposes.
     initialState = savedStateHandle[KEY_STATE] ?: run {
@@ -112,13 +118,29 @@ class VaultItemViewModel @Inject constructor(
         organizationEventManager.trackEvent(
             event = OrganizationEvent.CipherClientViewed(cipherId = state.vaultItemId),
         )
+
+        val driveFileIdsFlow = MutableStateFlow<Set<String>?>(null)
+        viewModelScope.launch {
+            if (googleDriveManager.isSignedId()) {
+                driveFileIdsFlow.value = googleDriveManager.listFiles().map { it.id }.toSet()
+            }
+        }
+
         combine(
             vaultRepository.getVaultItemStateFlow(state.vaultItemId),
             authRepository.userStateFlow,
             vaultRepository.getAuthCodeFlow(state.vaultItemId),
             vaultRepository.collectionsStateFlow,
             vaultRepository.foldersStateFlow,
-        ) { cipherViewState, userState, authCodeState, collectionsState, folderState ->
+            driveFileIdsFlow
+        ) { args: Array<Any?> ->
+            val cipherViewState = args[0] as DataState<CipherView?>
+            val userState = args[1] as UserState?
+            val authCodeState = args[2] as DataState<VerificationCodeItem?>
+            val collectionsState = args[3] as DataState<List<CollectionView>>
+            val folderState = args[4] as DataState<List<FolderView>>
+            val driveFileIds = args[5] as Set<String>?
+
             val totpCodeData = authCodeState.data?.let {
                 TotpCodeItemData(
                     periodSeconds = it.periodSeconds,
@@ -218,6 +240,7 @@ class VaultItemViewModel @Inject constructor(
                             canEdit = canEdit,
                             relatedLocations = relatedLocations,
                             hasOrganizations = hasOrganizations,
+                            driveFileIds = driveFileIds,
                         )
                     },
             )
@@ -1553,6 +1576,7 @@ class VaultItemViewModel @Inject constructor(
             isIconLoadingDisabled = settingsRepository.isIconLoadingDisabled,
             relatedLocations = this.data?.relatedLocations.orEmpty().toImmutableList(),
             hasOrganizations = this.data?.hasOrganizations == true,
+            driveFileIds = this.data?.driveFileIds,
         )
         ?: VaultItemState.ViewState.Error(message = errorText)
 

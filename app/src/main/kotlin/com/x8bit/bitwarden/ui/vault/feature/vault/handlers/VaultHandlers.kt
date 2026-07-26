@@ -25,7 +25,6 @@ data class VaultHandlers(
     val vaultItemClick: (VaultState.ViewState.VaultItem) -> Unit,
     val folderClick: (VaultState.ViewState.FolderItem) -> Unit,
     val collectionClick: (VaultState.ViewState.CollectionItem) -> Unit,
-    val verificationCodesClick: () -> Unit,
     val loginGroupClick: () -> Unit,
     val cardGroupClick: () -> Unit,
     val identityGroupClick: () -> Unit,
@@ -87,9 +86,6 @@ data class VaultHandlers(
                 vaultItemClick = { viewModel.trySendAction(VaultAction.VaultItemClick(it)) },
                 folderClick = { viewModel.trySendAction(VaultAction.FolderClick(it)) },
                 collectionClick = { viewModel.trySendAction(VaultAction.CollectionClick(it)) },
-                verificationCodesClick = {
-                    viewModel.trySendAction(VaultAction.VerificationCodesClick)
-                },
                 loginGroupClick = { viewModel.trySendAction(VaultAction.LoginGroupClick) },
                 cardGroupClick = { viewModel.trySendAction(VaultAction.CardGroupClick) },
                 identityGroupClick = { viewModel.trySendAction(VaultAction.IdentityGroupClick) },

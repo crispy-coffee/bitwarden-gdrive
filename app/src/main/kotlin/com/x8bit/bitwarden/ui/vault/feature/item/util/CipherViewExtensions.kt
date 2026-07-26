@@ -42,6 +42,8 @@ import java.util.Locale
 
 /**
  * Transforms [VaultData] into [VaultItemState.ViewState].
+ *
+ * @param driveFileIds If provided, only Google Drive attachments with IDs in this set will be included.
  */
 @Suppress("CyclomaticComplexMethod", "LongMethod", "LongParameterList")
 fun CipherView.toViewState(
@@ -57,12 +59,19 @@ fun CipherView.toViewState(
     isIconLoadingDisabled: Boolean,
     relatedLocations: ImmutableList<VaultItemLocation>,
     hasOrganizations: Boolean,
+    driveFileIds: Set<String>? = null,
 ): VaultItemState.ViewState {
     val gdriveAttachmentsFromFields = fields
         .orEmpty()
         .filter { it.name?.startsWith("__gdrive_attach_") == true }
         .mapNotNull { field ->
             val id = field.name?.removePrefix("__gdrive_attach_") ?: return@mapNotNull null
+
+            if (driveFileIds != null) {
+                val driveId = id.removePrefix("gdrive_")
+                if (!driveFileIds.contains(driveId)) return@mapNotNull null
+            }
+
             val value = field.value ?: ""
             val parts = if (value.startsWith("v1:")) {
                 value.removePrefix("v1:").split(":")
@@ -122,6 +131,11 @@ fun CipherView.toViewState(
                 ?.mapNotNull {
                     val id = it.id ?: return@mapNotNull null
                     val fileName = it.fileName ?: return@mapNotNull null
+
+                    if (id.startsWith("gdrive_") && driveFileIds != null) {
+                        val driveId = id.removePrefix("gdrive_")
+                        if (!driveFileIds.contains(driveId)) return@mapNotNull null
+                    }
 
                     // Recover missing URL for gdrive attachments
                     val url = it.url ?: if (id.startsWith("gdrive_")) id.removePrefix("gdrive_") else null

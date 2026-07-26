@@ -26,7 +26,6 @@ data object VaultRoute
 @Suppress("LongParameterList")
 fun NavGraphBuilder.vaultDestination(
     onNavigateToVaultAddItemScreen: (args: VaultAddEditArgs) -> Unit,
-    onNavigateToVerificationCodeScreen: () -> Unit,
     onNavigateToVaultItemScreen: (args: VaultItemArgs) -> Unit,
     onNavigateToVaultEditItemScreen: (args: VaultAddEditArgs) -> Unit,
     onNavigateToVaultItemListingScreen: (vaultItemType: VaultItemListingType) -> Unit,
@@ -44,7 +43,6 @@ fun NavGraphBuilder.vaultDestination(
             onNavigateToVaultItemScreen = onNavigateToVaultItemScreen,
             onNavigateToVaultEditItemScreen = onNavigateToVaultEditItemScreen,
             onNavigateToVaultItemListingScreen = onNavigateToVaultItemListingScreen,
-            onNavigateToVerificationCodeScreen = onNavigateToVerificationCodeScreen,
             onNavigateToSearchVault = onNavigateToSearchVault,
             onDimBottomNavBarRequest = onDimBottomNavBarRequest,
             onNavigateToImportLogins = onNavigateToImportLogins,

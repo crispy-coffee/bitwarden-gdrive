@@ -2,18 +2,25 @@ package com.x8bit.bitwarden.ui.vault.feature.attachments.util
 
 import com.bitwarden.vault.CipherView
 import com.x8bit.bitwarden.ui.vault.feature.attachments.AttachmentsState
-import com.x8bit.bitwarden.ui.vault.feature.attachments.util.TEN_MB_IN_BYTES
 import kotlinx.collections.immutable.toImmutableList
 
 /**
  * Converts the [CipherView] into a [AttachmentsState.ViewState.Content].
+ *
+ * @param driveFileIds If provided, only Google Drive attachments with IDs in this set will be included.
  */
-fun CipherView.toViewState(): AttachmentsState.ViewState.Content {
+fun CipherView.toViewState(driveFileIds: Set<String>? = null): AttachmentsState.ViewState.Content {
     val gdriveAttachmentsFromFields = fields
         .orEmpty()
         .filter { it.name?.startsWith("__gdrive_attach_") == true }
         .mapNotNull { field ->
             val id = field.name?.removePrefix("__gdrive_attach_") ?: return@mapNotNull null
+
+            if (driveFileIds != null) {
+                val driveId = id.removePrefix("gdrive_")
+                if (!driveFileIds.contains(driveId)) return@mapNotNull null
+            }
+
             val value = field.value ?: ""
             val parts = if (value.startsWith("v1:")) {
                 value.removePrefix("v1:").split(":")
@@ -35,20 +42,27 @@ fun CipherView.toViewState(): AttachmentsState.ViewState.Content {
             )
         }
 
+    val regularAttachments = this.attachments
+        .orEmpty()
+        .mapNotNull {
+            val id = it.id ?: return@mapNotNull null
+
+            if (id.startsWith("gdrive_") && driveFileIds != null) {
+                val driveId = id.removePrefix("gdrive_")
+                if (!driveFileIds.contains(driveId)) return@mapNotNull null
+            }
+
+            AttachmentsState.AttachmentItem(
+                id = id,
+                title = it.fileName.orEmpty(),
+                displaySize = it.sizeName.orEmpty(),
+                isLargeFile = it.isLargeFile(),
+            )
+        }
+
     return AttachmentsState.ViewState.Content(
         originalCipher = this,
-        attachments = (this
-            .attachments
-            .orEmpty()
-            .mapNotNull {
-                val id = it.id ?: return@mapNotNull null
-                AttachmentsState.AttachmentItem(
-                    id = id,
-                    title = it.fileName.orEmpty(),
-                    displaySize = it.sizeName.orEmpty(),
-                    isLargeFile = it.isLargeFile(),
-                )
-            } + gdriveAttachmentsFromFields)
+        attachments = (regularAttachments + gdriveAttachmentsFromFields)
             .distinctBy { it.id }
             .toImmutableList(),
         newAttachment = null,

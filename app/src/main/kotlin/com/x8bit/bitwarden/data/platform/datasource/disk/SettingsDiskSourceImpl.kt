@@ -61,6 +61,8 @@ private const val UPGRADED_TO_PREMIUM_CARD_PENDING =
     "upgradedToPremiumCardPending"
 private const val PREMIUM_UPGRADE_PENDING =
     "premiumUpgradePending"
+private const val GOOGLE_DRIVE_LAST_SYNC_TIME = "googleDriveLastSyncTime"
+private const val GOOGLE_DRIVE_ACCOUNT_EMAIL = "googleDriveAccountEmail"
 
 /**
  * Primary implementation of [SettingsDiskSource].
@@ -113,6 +115,9 @@ class SettingsDiskSourceImpl(
 
     private val mutablePremiumUpgradePendingFlowMap =
         mutableMapOf<String, MutableSharedFlow<Boolean?>>()
+
+    private val mutableGoogleDriveLastSyncFlowMap =
+        mutableMapOf<String, MutableSharedFlow<Instant?>>()
 
     private val mutableIsIconLoadingDisabledFlow = bufferedMutableSharedFlow<Boolean?>()
 
@@ -735,6 +740,39 @@ class SettingsDiskSourceImpl(
 
     override fun getAppResumeScreen(userId: String): AppResumeScreenData? =
         getString(RESUME_SCREEN.appendIdentifier(userId))?.let { json.decodeFromStringOrNull(it) }
+
+    override fun getGoogleDriveLastSyncTime(userId: String): Instant? =
+        getLong(key = GOOGLE_DRIVE_LAST_SYNC_TIME.appendIdentifier(userId))
+            ?.let { Instant.ofEpochMilli(it) }
+
+    override fun storeGoogleDriveLastSyncTime(userId: String, lastSyncTime: Instant?) {
+        putLong(
+            key = GOOGLE_DRIVE_LAST_SYNC_TIME.appendIdentifier(userId),
+            value = lastSyncTime?.toEpochMilli(),
+        )
+        getMutableGoogleDriveLastSyncFlow(userId = userId).tryEmit(lastSyncTime)
+    }
+
+    override fun getGoogleDriveLastSyncTimeFlow(userId: String): Flow<Instant?> =
+        getMutableGoogleDriveLastSyncFlow(userId = userId)
+            .onSubscription { emit(getGoogleDriveLastSyncTime(userId = userId)) }
+
+    override fun getGoogleDriveAccountEmail(userId: String): String? =
+        getString(key = GOOGLE_DRIVE_ACCOUNT_EMAIL.appendIdentifier(userId))
+
+    override fun storeGoogleDriveAccountEmail(userId: String, email: String?) {
+        putString(
+            key = GOOGLE_DRIVE_ACCOUNT_EMAIL.appendIdentifier(userId),
+            value = email,
+        )
+    }
+
+    private fun getMutableGoogleDriveLastSyncFlow(
+        userId: String,
+    ): MutableSharedFlow<Instant?> =
+        mutableGoogleDriveLastSyncFlowMap.getOrPut(userId) {
+            bufferedMutableSharedFlow(replay = 1)
+        }
 
     private fun getMutableIntroducingArchiveActionCardDismissedFlow(
         userId: String,

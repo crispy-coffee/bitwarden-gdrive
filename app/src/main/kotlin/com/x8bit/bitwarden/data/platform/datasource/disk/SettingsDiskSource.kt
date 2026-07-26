@@ -547,4 +547,29 @@ interface SettingsDiskSource : FlightRecorderDiskSource {
      * Gets the screen data to resume to for the device identified by [userId] or null if no screen
      */
     fun getAppResumeScreen(userId: String): AppResumeScreenData?
+
+    /**
+     * Gets the last time Google Drive was synced for a given [userId].
+     */
+    fun getGoogleDriveLastSyncTime(userId: String): Instant?
+
+    /**
+     * Emits updates that track [getGoogleDriveLastSyncTime] for the given [userId].
+     */
+    fun getGoogleDriveLastSyncTimeFlow(userId: String): Flow<Instant?>
+
+    /**
+     * Stores the given [lastSyncTime] for the given [userId].
+     */
+    fun storeGoogleDriveLastSyncTime(userId: String, lastSyncTime: Instant?)
+
+    /**
+     * Gets the last connected Google Drive account email for a given [userId].
+     */
+    fun getGoogleDriveAccountEmail(userId: String): String?
+
+    /**
+     * Stores the given [email] as the last connected Google Drive account for the given [userId].
+     */
+    fun storeGoogleDriveAccountEmail(userId: String, email: String?)
 }

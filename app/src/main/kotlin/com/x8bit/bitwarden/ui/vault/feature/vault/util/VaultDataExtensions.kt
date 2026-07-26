@@ -46,7 +46,6 @@ fun VaultData.toViewState(
     baseIconUrl: String,
     vaultFilterType: VaultFilterType,
     restrictItemTypesPolicyOrgIds: List<String>,
-    validTotpIds: Set<String>,
     isNewItemTypesEnabled: Boolean,
 ): VaultState.ViewState {
     val allCipherViews =
@@ -136,7 +135,6 @@ fun VaultData.toViewState(
 
         VaultState.ViewState.Content(
             itemTypesCount = itemTypesCount,
-            totpItemsCount = activeCipherViews.count { it.id in validTotpIds },
             loginItemsCount = activeCipherViews.count { it.type is CipherListViewType.Login },
             cardItemsCount = cardCount,
             identityItemsCount = activeCipherViews

@@ -29,7 +29,6 @@ import com.x8bit.bitwarden.ui.platform.components.listitem.BitwardenGroupItem
 import com.x8bit.bitwarden.ui.vault.feature.itemlisting.model.ListingItemOverflowAction
 import com.x8bit.bitwarden.ui.vault.feature.vault.handlers.VaultHandlers
 
-private const val TOTP_TYPES_COUNT: Int = 1
 private const val HIDDEN_TYPES_COUNT: Int = 2
 
 /**
@@ -112,37 +111,6 @@ fun VaultContent(
                         .standardHorizontalMargin(),
                 )
                 Spacer(modifier = Modifier.height(height = 24.dp))
-            }
-        }
-
-        if (state.totpItemsCount > 0) {
-            item(key = "totp_header") {
-                BitwardenListHeaderText(
-                    label = stringResource(id = BitwardenString.totp),
-                    supportingLabel = TOTP_TYPES_COUNT.toString(),
-                    modifier = Modifier
-                        .animateItem()
-                        .fillMaxWidth()
-                        .standardHorizontalMargin()
-                        .padding(horizontal = 16.dp),
-                )
-                Spacer(modifier = Modifier.height(height = 8.dp))
-            }
-
-            item(key = "verification_codes_group") {
-                BitwardenGroupItem(
-                    startIcon = IconData.Local(iconRes = BitwardenDrawable.ic_clock),
-                    label = stringResource(id = BitwardenString.verification_codes),
-                    supportingLabel = state.totpItemsCount.toString(),
-                    onClick = vaultHandlers.verificationCodesClick,
-                    cardStyle = CardStyle.Full,
-                    modifier = Modifier
-                        .animateItem()
-                        .fillMaxWidth()
-                        .testTag("VerificationCodesFilter")
-                        .standardHorizontalMargin(),
-                )
-                Spacer(modifier = Modifier.height(height = 16.dp))
             }
         }
 

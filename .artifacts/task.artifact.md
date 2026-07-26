@@ -1,0 +1,10 @@
+- [ ] Fix `totpItemsCount` build error
+    - [ ] [Modify] `VaultDataExtensions.kt` to remove `totpItemsCount` logic.
+    - [ ] [Modify] `VaultViewModel.kt` to update `toViewState` calls.
+    - [ ] [Modify] `VaultDataExtensionsTest.kt` to update tests.
+    - [ ] [Modify] `VaultScreenTest.kt` to update tests.
+    - [ ] [Modify] `VaultViewModelTest.kt` to update tests.
+    - [ ] [Modify] `VaultStateExtensionsTest.kt` to update tests.
+- [ ] Verify build and tests
+    - [ ] Run `:app:compileStandardDebugKotlin`.
+    - [ ] Run affected tests.

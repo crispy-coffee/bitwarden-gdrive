@@ -1388,7 +1388,6 @@ class VaultViewModelTest : BaseViewModelTest() {
                 baseIconUrl = viewModel.stateFlow.value.baseIconUrl,
                 hasMasterPassword = true,
                 restrictItemTypesPolicyOrgIds = emptyList(),
-                validTotpIds = emptySet(),
                 isNewItemTypesEnabled = false,
             ),
         )
@@ -1415,7 +1414,6 @@ class VaultViewModelTest : BaseViewModelTest() {
                     baseIconUrl = viewModel.stateFlow.value.baseIconUrl,
                     hasMasterPassword = true,
                     restrictItemTypesPolicyOrgIds = emptyList(),
-                    validTotpIds = emptySet(),
                     isNewItemTypesEnabled = false,
                 ),
             ),
@@ -1548,8 +1546,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                     ),
                     noFolderItems = listOf(),
                     trashItemsCount = 0,
-                    totpItemsCount = 0,
-                    itemTypesCount = CipherType.entries.size,
+                                        itemTypesCount = CipherType.entries.size,
                     sshKeyItemsCount = 1,
                     bankAccountItemsCount = 0,
                     licenseItemsCount = 0,
@@ -1583,8 +1580,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                     collectionItems = listOf(),
                     noFolderItems = listOf(),
                     trashItemsCount = 0,
-                    totpItemsCount = 0,
-                    itemTypesCount = CipherType.entries.size,
+                                        itemTypesCount = CipherType.entries.size,
                     sshKeyItemsCount = 0,
                     bankAccountItemsCount = 0,
                     licenseItemsCount = 0,
@@ -1727,8 +1723,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                     ),
                     noFolderItems = listOf(),
                     trashItemsCount = 0,
-                    totpItemsCount = 0,
-                    itemTypesCount = CipherType.entries.size,
+                                        itemTypesCount = CipherType.entries.size,
                     sshKeyItemsCount = 0,
                     bankAccountItemsCount = 0,
                     licenseItemsCount = 0,
@@ -1872,8 +1867,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                         ),
                         noFolderItems = listOf(),
                         trashItemsCount = 0,
-                        totpItemsCount = 0,
-                        itemTypesCount = CipherType.entries.size,
+                                                itemTypesCount = CipherType.entries.size,
                         sshKeyItemsCount = 0,
                         bankAccountItemsCount = 0,
                         licenseItemsCount = 0,
@@ -1947,8 +1941,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                         ),
                         noFolderItems = listOf(),
                         trashItemsCount = 0,
-                        totpItemsCount = 0,
-                        itemTypesCount = CipherType.entries.size,
+                                                itemTypesCount = CipherType.entries.size,
                         sshKeyItemsCount = 0,
                         bankAccountItemsCount = 0,
                         licenseItemsCount = 0,
@@ -2068,8 +2061,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                         ),
                         noFolderItems = listOf(),
                         trashItemsCount = 0,
-                        totpItemsCount = 0,
-                        itemTypesCount = CipherType.entries.size,
+                                                itemTypesCount = CipherType.entries.size,
                         sshKeyItemsCount = 0,
                         bankAccountItemsCount = 0,
                         licenseItemsCount = 0,
@@ -2163,8 +2155,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                         collectionItems = listOf(),
                         noFolderItems = listOf(),
                         trashItemsCount = 0,
-                        totpItemsCount = 0,
-                        itemTypesCount = CipherType.entries.size,
+                                                itemTypesCount = CipherType.entries.size,
                         sshKeyItemsCount = 1,
                         bankAccountItemsCount = 0,
                         licenseItemsCount = 0,
@@ -2182,14 +2173,6 @@ class VaultViewModelTest : BaseViewModelTest() {
             )
         }
 
-    @Test
-    fun `VerificationCodesClick should emit NavigateToVerificationCodeScreen`() = runTest {
-        val viewModel = createViewModel()
-        viewModel.eventFlow.test {
-            viewModel.trySendAction(VaultAction.VerificationCodesClick)
-            assertEquals(VaultEvent.NavigateToVerificationCodeScreen, awaitItem())
-        }
-    }
 
     @Test
     fun `AddItemClick should emit NavigateToAddItemScreen with correct type`() = runTest {
@@ -2443,8 +2426,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                         collectionItems = listOf(),
                         noFolderItems = listOf(),
                         trashItemsCount = 0,
-                        totpItemsCount = 0,
-                        itemTypesCount = CipherType.entries.size,
+                                                itemTypesCount = CipherType.entries.size,
                         sshKeyItemsCount = 0,
                         bankAccountItemsCount = 0,
                         licenseItemsCount = 0,
@@ -2502,8 +2484,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                     collectionItems = listOf(),
                     noFolderItems = listOf(),
                     trashItemsCount = 0,
-                    totpItemsCount = 0,
-                    itemTypesCount = CipherType.entries.size,
+                                        itemTypesCount = CipherType.entries.size,
                     sshKeyItemsCount = 0,
                     bankAccountItemsCount = 0,
                     licenseItemsCount = 0,
@@ -2539,8 +2520,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                     collectionItems = listOf(),
                     noFolderItems = listOf(),
                     trashItemsCount = 0,
-                    totpItemsCount = 0,
-                    itemTypesCount = CipherType.entries.size,
+                                        itemTypesCount = CipherType.entries.size,
                     sshKeyItemsCount = 0,
                     bankAccountItemsCount = 0,
                     licenseItemsCount = 0,
@@ -2650,8 +2630,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                         collectionItems = listOf(),
                         noFolderItems = listOf(),
                         trashItemsCount = 0,
-                        totpItemsCount = 0,
-                        itemTypesCount = CipherType.entries.size,
+                                                itemTypesCount = CipherType.entries.size,
                         sshKeyItemsCount = 0,
                         bankAccountItemsCount = 0,
                         licenseItemsCount = 0,
@@ -2728,8 +2707,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                         collectionItems = listOf(),
                         noFolderItems = listOf(),
                         trashItemsCount = 0,
-                        totpItemsCount = 0,
-                        itemTypesCount = CipherType.entries.size,
+                                                itemTypesCount = CipherType.entries.size,
                         sshKeyItemsCount = 0,
                         bankAccountItemsCount = 0,
                         licenseItemsCount = 0,
@@ -4136,23 +4114,6 @@ class VaultViewModelTest : BaseViewModelTest() {
             }
         }
 
-    @Test
-    @Suppress("MaxLineLength")
-    fun `init should send NavigateToVerificationCodeScreen when special circumstance is VerificationCodeShortcut`() =
-        runTest {
-            every {
-                specialCircumstanceManager.specialCircumstance
-            } returns SpecialCircumstance.VerificationCodeShortcut
-            every { specialCircumstanceManager.specialCircumstance = null } just runs
-            val viewModel = createViewModel()
-            viewModel.eventFlow.test {
-                viewModel.trySendAction(VaultAction.LifecycleResumed)
-                assertEquals(
-                    VaultEvent.NavigateToVerificationCodeScreen, awaitItem(),
-                )
-            }
-            verify { specialCircumstanceManager.specialCircumstance = null }
-        }
 
     @Test
     @Suppress("MaxLineLength")
@@ -4397,8 +4358,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                         collectionItems = listOf(),
                         noFolderItems = listOf(),
                         trashItemsCount = 0,
-                        totpItemsCount = 0,
-                        itemTypesCount = CipherType.entries.size,
+                                                itemTypesCount = CipherType.entries.size,
                         sshKeyItemsCount = 0,
                         bankAccountItemsCount = 0,
                         licenseItemsCount = 0,
@@ -4466,8 +4426,7 @@ class VaultViewModelTest : BaseViewModelTest() {
                         collectionItems = listOf(),
                         noFolderItems = listOf(),
                         trashItemsCount = 0,
-                        totpItemsCount = 0,
-                        itemTypesCount = CipherType.entries.size,
+                                                itemTypesCount = CipherType.entries.size,
                         sshKeyItemsCount = 0,
                         bankAccountItemsCount = 0,
                         licenseItemsCount = 0,
@@ -4549,13 +4508,12 @@ class VaultViewModelTest : BaseViewModelTest() {
                     ),
                 )
 
-                // Content state with default totpItemsCount (0 from toViewState)
+                // Content state with default toViewState
                 awaitItem()
 
                 val contentViewState = DEFAULT_CONTENT_VIEW_STATE.copy(
                     itemTypesCount = 8,
-                    totpItemsCount = validTotpIds.size,
-                    loginItemsCount = 1,
+                                        loginItemsCount = 1,
                     archivedItemsCount = 0,
                 )
                 assertEquals(
@@ -4607,14 +4565,13 @@ class VaultViewModelTest : BaseViewModelTest() {
                     ),
                 )
 
-                // Content state with default totpItemsCount (0 from toViewState)
+                // Content state with default toViewState
                 awaitItem()
 
                 val contentViewState = DEFAULT_CONTENT_VIEW_STATE.copy(
                     itemTypesCount = 8,
                     loginItemsCount = 1,
-                    totpItemsCount = validTotpIds.size,
-                    archivedItemsCount = null,
+                                        archivedItemsCount = null,
                     archiveSubText = BitwardenString.premium_subscription_required.asText(),
                     archiveEndIcon = BitwardenDrawable.ic_locked,
                 )
@@ -4786,8 +4743,7 @@ private val DEFAULT_CONTENT_VIEW_STATE = VaultState.ViewState.Content(
     bankAccountItemsCount = 0,
     licenseItemsCount = 0,
     passportItemsCount = 0,
-    totpItemsCount = 0,
-    favoriteItems = emptyList(),
+        favoriteItems = emptyList(),
     folderItems = emptyList(),
     noFolderItems = emptyList(),
     collectionItems = emptyList(),

@@ -89,7 +89,6 @@ fun VaultScreen(
     onNavigateToVaultAddItemScreen: (args: VaultAddEditArgs) -> Unit,
     onNavigateToVaultItemScreen: (args: VaultItemArgs) -> Unit,
     onNavigateToVaultEditItemScreen: (args: VaultAddEditArgs) -> Unit,
-    onNavigateToVerificationCodeScreen: () -> Unit,
     onNavigateToVaultItemListingScreen: (vaultItemType: VaultItemListingType) -> Unit,
     onNavigateToSearchVault: (searchType: SearchType.Vault) -> Unit,
     onDimBottomNavBarRequest: (shouldDim: Boolean) -> Unit,
@@ -138,10 +137,6 @@ fun VaultScreen(
             }
 
             VaultEvent.NavigateToVaultSearchScreen -> onNavigateToSearchVault(SearchType.Vault.All)
-
-            is VaultEvent.NavigateToVerificationCodeScreen -> {
-                onNavigateToVerificationCodeScreen()
-            }
 
             is VaultEvent.NavigateToVaultItem -> {
                 onNavigateToVaultItemScreen(VaultItemArgs(event.itemId, event.type))

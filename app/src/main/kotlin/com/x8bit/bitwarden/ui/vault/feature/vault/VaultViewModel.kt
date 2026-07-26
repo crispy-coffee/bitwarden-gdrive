@@ -325,7 +325,6 @@ class VaultViewModel @Inject constructor(
             is VaultAction.FolderClick -> handleFolderItemClick(action)
             is VaultAction.CollectionClick -> handleCollectionItemClick(action)
             is VaultAction.IdentityGroupClick -> handleIdentityClick()
-            is VaultAction.VerificationCodesClick -> handleVerificationCodeClick()
             is VaultAction.LoginGroupClick -> handleLoginClick()
             is VaultAction.SearchIconClick -> handleSearchIconClick()
             is VaultAction.LockAccountClick -> handleLockAccountClick(action)
@@ -517,7 +516,8 @@ class VaultViewModel @Inject constructor(
             }
 
             is SpecialCircumstance.VerificationCodeShortcut -> {
-                sendEvent(VaultEvent.NavigateToVerificationCodeScreen)
+                // VerificationCode screen is removed.
+                // We should probably just do nothing or navigate to vault search.
                 specialCircumstanceManager.specialCircumstance = null
                 return
             }
@@ -593,10 +593,6 @@ class VaultViewModel @Inject constructor(
                 VaultItemListingType.Collection(action.collectionItem.id),
             ),
         )
-    }
-
-    private fun handleVerificationCodeClick() {
-        sendEvent(VaultEvent.NavigateToVerificationCodeScreen)
     }
 
     private fun handleIdentityClick() {
@@ -1464,7 +1460,6 @@ class VaultViewModel @Inject constructor(
                             vaultFilterType = vaultFilterTypeOrDefault,
                             isIconLoadingDisabled = state.isIconLoadingDisabled,
                             restrictItemTypesPolicyOrgIds = state.restrictItemTypesPolicyOrgIds,
-                            validTotpIds = validTotpIds,
                             isNewItemTypesEnabled = state.isNewItemTypesEnabled,
                         ),
                         dialog = VaultState.DialogState.SyncError(
@@ -1552,7 +1547,6 @@ class VaultViewModel @Inject constructor(
                     hasMasterPassword = state.hasMasterPassword,
                     vaultFilterType = vaultFilterTypeOrDefault,
                     restrictItemTypesPolicyOrgIds = state.restrictItemTypesPolicyOrgIds,
-                    validTotpIds = validTotpIds,
                     isNewItemTypesEnabled = state.isNewItemTypesEnabled,
                 ),
                 dialog = dialog,
@@ -1609,7 +1603,6 @@ class VaultViewModel @Inject constructor(
                     hasMasterPassword = state.hasMasterPassword,
                     vaultFilterType = vaultFilterTypeOrDefault,
                     restrictItemTypesPolicyOrgIds = state.restrictItemTypesPolicyOrgIds,
-                    validTotpIds = validTotpIds,
                     isNewItemTypesEnabled = state.isNewItemTypesEnabled,
                 ),
                 validTotpIds = validTotpIds.toImmutableSet(),
@@ -1881,7 +1874,7 @@ data class VaultState(
         /**
          * Content state for the [VaultScreen] showing the actual content or items.
          *
-         * @property totpItemsCount The count of totp code items.
+         * @property itemTypesCount The count of item types.
          * @property loginItemsCount The count of Login type items.
          * @property cardItemsCount The count of Card type items.
          * @property bankAccountItemsCount The count of Bank Account type items.
@@ -1905,7 +1898,6 @@ data class VaultState(
         @Parcelize
         data class Content(
             val itemTypesCount: Int,
-            val totpItemsCount: Int,
             val loginItemsCount: Int,
             val cardItemsCount: Int,
             val identityItemsCount: Int,
@@ -2361,11 +2353,6 @@ sealed class VaultEvent {
     ) : VaultEvent()
 
     /**
-     * Navigate to the verification code screen.
-     */
-    data object NavigateToVerificationCodeScreen : VaultEvent()
-
-    /**
      * Navigate to the import logins screen.
      */
     data object NavigateToImportLogins : VaultEvent()
@@ -2517,11 +2504,6 @@ sealed class VaultAction {
     data class CollectionClick(
         val collectionItem: VaultState.ViewState.CollectionItem,
     ) : VaultAction()
-
-    /**
-     * User clicked on the verification codes button.
-     */
-    data object VerificationCodesClick : VaultAction()
 
     /**
      * User clicked the login types button.

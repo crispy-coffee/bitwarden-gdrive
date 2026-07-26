@@ -19,6 +19,7 @@ import com.x8bit.bitwarden.data.auth.repository.AuthRepository
 import com.x8bit.bitwarden.data.auth.repository.model.UserState
 import com.x8bit.bitwarden.data.billing.manager.PremiumStateManager
 import com.x8bit.bitwarden.data.platform.manager.FeatureFlagManager
+import com.x8bit.bitwarden.data.platform.manager.GoogleDriveManager
 import com.x8bit.bitwarden.data.platform.repository.EnvironmentRepository
 import com.x8bit.bitwarden.data.vault.repository.VaultRepository
 import com.x8bit.bitwarden.data.vault.repository.model.CreateAttachmentResult
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
+import timber.log.Timber
 import javax.inject.Inject
 
 private const val KEY_STATE = "state"
@@ -45,13 +47,14 @@ private const val MAX_FILE_SIZE_BYTES: Long = 100 * 1024 * 1024
 /**
  * ViewModel responsible for handling user interactions in the attachments screen.
  */
-@Suppress("TooManyFunctions")
+@Suppress("TooManyFunctions", "LongParameterList")
 @HiltViewModel
 class AttachmentsViewModel @Inject constructor(
     private val authRepo: AuthRepository,
     private val environmentRepo: EnvironmentRepository,
     private val vaultRepo: VaultRepository,
     private val premiumStateManager: PremiumStateManager,
+    private val googleDriveManager: GoogleDriveManager,
     featureFlagManager: FeatureFlagManager,
     savedStateHandle: SavedStateHandle,
 ) : BaseViewModel<AttachmentsState, AttachmentsEvent, AttachmentsAction>(
@@ -91,6 +94,7 @@ class AttachmentsViewModel @Inject constructor(
     }
 
     override fun handleAction(action: AttachmentsAction) {
+        Timber.d("Handling action: %s", action::class.simpleName)
         when (action) {
             AttachmentsAction.BackClick -> handleBackClick()
             AttachmentsAction.SaveClick -> handleSaveClick()
@@ -102,6 +106,9 @@ class AttachmentsViewModel @Inject constructor(
             is AttachmentsAction.DeleteClick -> handleDeleteClick(action)
             is AttachmentsAction.ItemClick -> handleItemClick(action)
             is AttachmentsAction.Internal -> handleInternalAction(action)
+            AttachmentsAction.RefreshClick -> {
+                vaultRepo.sync(forced = true)
+            }
             AttachmentsAction.ConnectGoogleDriveClick -> {
                 mutableStateFlow.update { it.copy(dialogState = null) }
                 sendEvent(AttachmentsEvent.NavigateToGoogleDrive)
@@ -114,6 +121,7 @@ class AttachmentsViewModel @Inject constructor(
     }
 
     private fun handleSaveClick() {
+        Timber.d("Save Clicked")
         onContent { content ->
             if (content.newAttachment == null) {
                 mutableStateFlow.update {
@@ -218,6 +226,7 @@ class AttachmentsViewModel @Inject constructor(
     }
 
     private fun handleDeleteClick(action: AttachmentsAction.DeleteClick) {
+        Timber.d("Delete Clicked for attachment: %s", action.attachmentId)
         onContent { content ->
             val cipherView = content.originalCipher ?: return@onContent
             mutableStateFlow.update {
@@ -278,15 +287,21 @@ class AttachmentsViewModel @Inject constructor(
             }
 
             is DataState.Loaded -> {
-                mutableStateFlow.update {
-                    it.copy(
-                        viewState = dataState
-                            .data
-                            ?.toViewState()
-                            ?: AttachmentsState.ViewState.Error(
-                                message = BitwardenString.generic_error_message.asText(),
-                            ),
-                    )
+                viewModelScope.launch {
+                    val driveFileIds = if (googleDriveManager.isSignedId()) {
+                        googleDriveManager.listFiles().map { it.id }.toSet()
+                    } else null
+
+                    mutableStateFlow.update {
+                        it.copy(
+                            viewState = dataState
+                                .data
+                                ?.toViewState(driveFileIds)
+                                ?: AttachmentsState.ViewState.Error(
+                                    message = BitwardenString.generic_error_message.asText(),
+                                ),
+                        )
+                    }
                 }
             }
 
@@ -310,15 +325,21 @@ class AttachmentsViewModel @Inject constructor(
             }
 
             is DataState.Pending -> {
-                mutableStateFlow.update {
-                    it.copy(
-                        viewState = dataState
-                            .data
-                            ?.toViewState()
-                            ?: AttachmentsState.ViewState.Error(
-                                message = BitwardenString.generic_error_message.asText(),
-                            ),
-                    )
+                viewModelScope.launch {
+                    val driveFileIds = if (googleDriveManager.isSignedId()) {
+                        googleDriveManager.listFiles().map { it.id }.toSet()
+                    } else null
+
+                    mutableStateFlow.update {
+                        it.copy(
+                            viewState = dataState
+                                .data
+                                ?.toViewState(driveFileIds)
+                                ?: AttachmentsState.ViewState.Error(
+                                    message = BitwardenString.generic_error_message.asText(),
+                                ),
+                        )
+                    }
                 }
             }
         }
@@ -355,6 +376,8 @@ class AttachmentsViewModel @Inject constructor(
                         BitwardenString.save_attachment_success.asText(),
                     ),
                 )
+                // Trigger vault sync to refresh data
+                vaultRepo.sync(forced = false)
             }
         }
     }
@@ -383,6 +406,8 @@ class AttachmentsViewModel @Inject constructor(
                         BitwardenString.attachment_deleted.asText(),
                     ),
                 )
+                // Trigger vault sync to refresh data
+                vaultRepo.sync(forced = false)
             }
         }
     }
@@ -640,6 +665,11 @@ sealed class AttachmentsAction {
      * User clicked to connect Google Drive.
      */
     data object ConnectGoogleDriveClick : AttachmentsAction()
+
+    /**
+     * User triggered a refresh.
+     */
+    data object RefreshClick : AttachmentsAction()
 
     /**
      * Internal ViewModel actions.

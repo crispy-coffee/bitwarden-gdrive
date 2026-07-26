@@ -24,6 +24,7 @@ import com.bitwarden.ui.platform.components.dialog.BitwardenBasicDialog
 import com.bitwarden.ui.platform.components.dialog.BitwardenLoadingDialog
 import com.bitwarden.ui.platform.components.dialog.BitwardenTwoButtonDialog
 import com.bitwarden.ui.platform.components.scaffold.BitwardenScaffold
+import com.bitwarden.ui.platform.components.scaffold.model.rememberBitwardenPullToRefreshState
 import com.bitwarden.ui.platform.components.snackbar.BitwardenSnackbarHost
 import com.bitwarden.ui.platform.components.snackbar.model.rememberBitwardenSnackbarHostState
 import com.bitwarden.ui.platform.components.util.rememberVectorPainter
@@ -88,6 +89,12 @@ fun AttachmentsScreen(
         attachmentsHandlers = attachmentsHandlers,
     )
 
+    val pullToRefreshState = rememberBitwardenPullToRefreshState(
+        isEnabled = true,
+        isRefreshing = state.viewState is AttachmentsState.ViewState.Loading,
+        onRefresh = attachmentsHandlers.onRefresh,
+    )
+
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     BitwardenScaffold(
         modifier = Modifier
@@ -114,6 +121,7 @@ fun AttachmentsScreen(
         snackbarHost = {
             BitwardenSnackbarHost(bitwardenHostState = snackbarHostState)
         },
+        pullToRefreshState = pullToRefreshState
     ) {
         when (val viewState = state.viewState) {
             is AttachmentsState.ViewState.Content -> AttachmentsContent(

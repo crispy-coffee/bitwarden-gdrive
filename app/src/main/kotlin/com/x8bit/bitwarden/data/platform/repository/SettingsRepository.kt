@@ -328,4 +328,19 @@ interface SettingsRepository : FlightRecorderManager {
      * Gets updates for the [isAppRegisteredForExport] value for the given [userId].
      */
     fun getAppRegisteredForExportFlow(userId: String): StateFlow<Boolean>
+
+    /**
+     * The last time Google Drive was synced.
+     */
+    var googleDriveLastSync: Instant?
+
+    /**
+     * Tracks changes to the Google Drive last sync time.
+     */
+    val googleDriveLastSyncFlow: StateFlow<Instant?>
+
+    /**
+     * The last connected Google Drive account email.
+     */
+    var googleDriveAccountEmail: String?
 }

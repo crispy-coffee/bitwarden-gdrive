@@ -686,6 +686,33 @@ class SettingsRepositoryImpl(
             )
     }
 
+    override var googleDriveLastSync: Instant?
+        get() = googleDriveLastSyncFlow.value
+        set(value) {
+            val userId = activeUserId ?: return
+            settingsDiskSource.storeGoogleDriveLastSyncTime(userId = userId, lastSyncTime = value)
+        }
+
+    override val googleDriveLastSyncFlow: StateFlow<Instant?>
+        get() = activeUserId
+            ?.let {
+                settingsDiskSource
+                    .getGoogleDriveLastSyncTimeFlow(userId = it)
+                    .stateIn(
+                        scope = unconfinedScope,
+                        started = SharingStarted.Eagerly,
+                        initialValue = settingsDiskSource.getGoogleDriveLastSyncTime(userId = it),
+                    )
+            }
+            ?: MutableStateFlow(value = null)
+
+    override var googleDriveAccountEmail: String?
+        get() = activeUserId?.let { settingsDiskSource.getGoogleDriveAccountEmail(it) }
+        set(value) {
+            val userId = activeUserId ?: return
+            settingsDiskSource.storeGoogleDriveAccountEmail(userId = userId, email = value)
+        }
+
     /**
      * If there isn't already one generated, generate a symmetric sync key that would be used
      * for communicating via IPC.

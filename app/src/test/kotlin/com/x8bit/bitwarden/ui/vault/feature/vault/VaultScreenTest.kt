@@ -88,8 +88,7 @@ class VaultScreenTest : BitwardenComposeTest() {
     private var onNavigateToVaultEditItemArgs: VaultAddEditArgs? = null
     private var onNavigateToVaultItemListingType: VaultItemListingType? = null
     private var onDimBottomNavBarRequestCalled = false
-    private var onNavigateToVerificationCodeScreen = false
-    private var onNavigateToSearchScreen = false
+        private var onNavigateToSearchScreen = false
     private var onNavigateToAddFolderCalled = false
     private var onNavigateToAddFolderParentFolderName: String? = null
     private val intentManager = mockk<IntentManager>(relaxed = true)
@@ -116,8 +115,7 @@ class VaultScreenTest : BitwardenComposeTest() {
                 onNavigateToVaultEditItemScreen = { onNavigateToVaultEditItemArgs = it },
                 onNavigateToVaultItemListingScreen = { onNavigateToVaultItemListingType = it },
                 onDimBottomNavBarRequest = { onDimBottomNavBarRequestCalled = true },
-                onNavigateToVerificationCodeScreen = { onNavigateToVerificationCodeScreen = true },
-                onNavigateToSearchVault = { onNavigateToSearchScreen = true },
+                                onNavigateToSearchVault = { onNavigateToSearchScreen = true },
                 onNavigateToImportLogins = { onNavigateToImportLoginsCalled = true },
                 onNavigateToAddFolderScreen = { folderName ->
                     onNavigateToAddFolderCalled = true
@@ -1029,29 +1027,6 @@ class VaultScreenTest : BitwardenComposeTest() {
         verify { viewModel.trySendAction(VaultAction.TryAgainClick) }
     }
 
-    @Test
-    fun `verification code click should call VerificationCodesClick `() {
-        mutableStateFlow.update {
-            it.copy(
-                viewState = DEFAULT_CONTENT_VIEW_STATE.copy(
-                    totpItemsCount = 3,
-                ),
-                isPremium = true,
-            )
-        }
-
-        composeTestRule
-            .onNodeWithText("Verification codes")
-            .performClick()
-
-        verify { viewModel.trySendAction(VaultAction.VerificationCodesClick) }
-    }
-
-    @Test
-    fun `NavigateToVerificationCodeScreen event should call onNavigateToVerificationCodeScreen`() {
-        mutableEventFlow.tryEmit(VaultEvent.NavigateToVerificationCodeScreen)
-        assertTrue(onNavigateToVerificationCodeScreen)
-    }
 
     @Test
     fun `search icon click should send SearchIconClick action`() {
@@ -1059,8 +1034,7 @@ class VaultScreenTest : BitwardenComposeTest() {
             it.copy(
                 viewState = VaultState.ViewState.Content(
                     itemTypesCount = 0,
-                    totpItemsCount = 0,
-                    loginItemsCount = 0,
+                                        loginItemsCount = 0,
                     cardItemsCount = 0,
                     identityItemsCount = 0,
                     secureNoteItemsCount = 0,
@@ -1217,60 +1191,6 @@ class VaultScreenTest : BitwardenComposeTest() {
         }
     }
 
-    @Test
-    fun `totp section should be visible based on state`() {
-        mutableStateFlow.update { state ->
-            state.copy(
-                viewState = DEFAULT_CONTENT_VIEW_STATE.copy(
-                    totpItemsCount = 2,
-                ),
-            )
-        }
-
-        composeTestRule
-            .onNodeWithText("TOTP (1)")
-            .performScrollTo()
-            .assertIsDisplayed()
-
-        composeTestRule
-            .onNodeWithText("Verification codes")
-            .assertTextEquals("Verification codes", "2")
-            .assertIsDisplayed()
-
-        mutableStateFlow.update { state ->
-            state.copy(
-                viewState = DEFAULT_CONTENT_VIEW_STATE.copy(
-                    totpItemsCount = 0,
-                ),
-            )
-        }
-
-        composeTestRule
-            .onNodeWithText("TOTP (1)")
-            .assertIsNotDisplayed()
-
-        composeTestRule
-            .onNodeWithText("Verification codes")
-            .assertIsNotDisplayed()
-    }
-
-    @Test
-    fun `clicking totp section should emit VerificationCodesClick action`() {
-        mutableStateFlow.update { state ->
-            state.copy(
-                isPremium = true,
-                viewState = DEFAULT_CONTENT_VIEW_STATE.copy(
-                    totpItemsCount = 2,
-                ),
-            )
-        }
-
-        composeTestRule
-            .onNodeWithText("Verification codes")
-            .performClick()
-
-        verify { viewModel.trySendAction(VaultAction.VerificationCodesClick) }
-    }
 
     @Test
     fun `clicking a favorite item should send VaultItemClick with the correct item`() {
@@ -3000,8 +2920,7 @@ private val DEFAULT_CONTENT_VIEW_STATE: VaultState.ViewState.Content = VaultStat
     noFolderItems = emptyList(),
     collectionItems = emptyList(),
     trashItemsCount = 0,
-    totpItemsCount = 0,
-    itemTypesCount = 4,
+        itemTypesCount = 4,
     sshKeyItemsCount = 0,
     bankAccountItemsCount = 0,
     licenseItemsCount = 0,

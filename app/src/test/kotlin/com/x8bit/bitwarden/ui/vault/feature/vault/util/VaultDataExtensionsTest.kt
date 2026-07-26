@@ -88,7 +88,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = setOf("mockId-1"),
             isNewItemTypesEnabled = false,
         )
 
@@ -142,7 +141,6 @@ class VaultDataExtensionsTest {
                 ),
                 noFolderItems = listOf(),
                 trashItemsCount = 0,
-                totpItemsCount = 1,
                 itemTypesCount = CipherType.entries.size,
                 sshKeyItemsCount = 0,
                 bankAccountItemsCount = 0,
@@ -183,7 +181,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.MyVault,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = setOf("mockId-1"),
             isNewItemTypesEnabled = false,
         )
 
@@ -204,7 +201,6 @@ class VaultDataExtensionsTest {
                 collectionItems = listOf(),
                 noFolderItems = listOf(),
                 trashItemsCount = 0,
-                totpItemsCount = 1,
                 itemTypesCount = CipherType.entries.size,
                 sshKeyItemsCount = 0,
                 bankAccountItemsCount = 0,
@@ -254,7 +250,6 @@ class VaultDataExtensionsTest {
             ),
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = setOf("mockId-1", "mockId-2"),
             isNewItemTypesEnabled = false,
         )
 
@@ -286,7 +281,6 @@ class VaultDataExtensionsTest {
                 ),
                 noFolderItems = listOf(),
                 trashItemsCount = 0,
-                totpItemsCount = 1,
                 itemTypesCount = CipherType.entries.size,
                 sshKeyItemsCount = 0,
                 bankAccountItemsCount = 0,
@@ -323,7 +317,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = emptySet(),
             isNewItemTypesEnabled = false,
         )
 
@@ -352,7 +345,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = emptySet(),
             isNewItemTypesEnabled = false,
         )
 
@@ -362,166 +354,6 @@ class VaultDataExtensionsTest {
         )
     }
 
-    @Suppress("MaxLineLength")
-    @Test
-    fun `toViewState should return 1 for totpItemsCount when validTotpIds contains the cipher id`() {
-        val vaultData = VaultData(
-            decryptCipherListResult = createMockDecryptCipherListResult(
-                number = 1,
-                successes = listOf(createMockCipherListView(number = 1)),
-            ),
-            collectionViewList = listOf(),
-            folderViewList = listOf(),
-            sendViewList = listOf(),
-        )
-
-        val actual = vaultData.toViewState(
-            isPremium = true,
-            isIconLoadingDisabled = false,
-            baseIconUrl = Environment.Us.environmentUrlData.baseIconUrl,
-            vaultFilterType = VaultFilterType.AllVaults,
-            hasMasterPassword = true,
-            restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = setOf("mockId-1"),
-            isNewItemTypesEnabled = false,
-        )
-
-        assertEquals(
-            VaultState.ViewState.Content(
-                loginItemsCount = 1,
-                cardItemsCount = 0,
-                identityItemsCount = 0,
-                secureNoteItemsCount = 0,
-                favoriteItems = listOf(),
-                folderItems = listOf(),
-                collectionItems = listOf(),
-                noFolderItems = listOf(),
-                trashItemsCount = 0,
-                totpItemsCount = 1,
-                itemTypesCount = CipherType.entries.size,
-                sshKeyItemsCount = 0,
-                bankAccountItemsCount = 0,
-                licenseItemsCount = 0,
-                passportItemsCount = 0,
-                archivedItemsCount = 0,
-                archiveSubText = null,
-                archiveEndIcon = null,
-                showCardGroup = true,
-                showBankAccountGroup = false,
-                showLicenseGroup = false,
-                showPassportGroup = false,
-            ),
-            actual,
-        )
-    }
-
-    @Suppress("MaxLineLength")
-    @Test
-    fun `toViewState should return 0 for totpItemsCount when validTotpIds is empty`() {
-        val vaultData = VaultData(
-            decryptCipherListResult = createMockDecryptCipherListResult(
-                number = 1,
-                successes = listOf(createMockCipherListView(number = 1)),
-            ),
-            collectionViewList = listOf(),
-            folderViewList = listOf(),
-            sendViewList = listOf(),
-        )
-
-        val actual = vaultData.toViewState(
-            isPremium = false,
-            vaultFilterType = VaultFilterType.AllVaults,
-            isIconLoadingDisabled = false,
-            baseIconUrl = Environment.Us.environmentUrlData.baseIconUrl,
-            hasMasterPassword = true,
-            restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = emptySet(),
-            isNewItemTypesEnabled = false,
-        )
-
-        assertEquals(
-            VaultState.ViewState.Content(
-                loginItemsCount = 1,
-                cardItemsCount = 0,
-                identityItemsCount = 0,
-                secureNoteItemsCount = 0,
-                favoriteItems = listOf(),
-                folderItems = listOf(),
-                collectionItems = listOf(),
-                noFolderItems = listOf(),
-                trashItemsCount = 0,
-                totpItemsCount = 0,
-                itemTypesCount = CipherType.entries.size,
-                sshKeyItemsCount = 0,
-                bankAccountItemsCount = 0,
-                licenseItemsCount = 0,
-                passportItemsCount = 0,
-                archivedItemsCount = null,
-                archiveSubText = BitwardenString.premium_subscription_required.asText(),
-                archiveEndIcon = BitwardenDrawable.ic_locked,
-                showCardGroup = true,
-                showBankAccountGroup = false,
-                showLicenseGroup = false,
-                showPassportGroup = false,
-            ),
-            actual,
-        )
-    }
-
-    @Suppress("MaxLineLength")
-    @Test
-    fun `toViewState should return 1 for totpItemsCount when validTotpIds contains the cipher id for an org TOTP cipher`() {
-        val vaultData = VaultData(
-            decryptCipherListResult = createMockDecryptCipherListResult(
-                number = 1,
-                successes = listOf(
-                    createMockCipherListView(number = 1).copy(organizationUseTotp = true),
-                ),
-            ),
-            collectionViewList = listOf(),
-            folderViewList = listOf(),
-            sendViewList = listOf(),
-        )
-
-        val actual = vaultData.toViewState(
-            isPremium = false,
-            vaultFilterType = VaultFilterType.AllVaults,
-            isIconLoadingDisabled = false,
-            baseIconUrl = Environment.Us.environmentUrlData.baseIconUrl,
-            hasMasterPassword = true,
-            restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = setOf("mockId-1"),
-            isNewItemTypesEnabled = false,
-        )
-
-        assertEquals(
-            VaultState.ViewState.Content(
-                loginItemsCount = 1,
-                cardItemsCount = 0,
-                identityItemsCount = 0,
-                secureNoteItemsCount = 0,
-                favoriteItems = listOf(),
-                folderItems = listOf(),
-                collectionItems = listOf(),
-                noFolderItems = listOf(),
-                trashItemsCount = 0,
-                totpItemsCount = 1,
-                itemTypesCount = CipherType.entries.size,
-                sshKeyItemsCount = 0,
-                bankAccountItemsCount = 0,
-                licenseItemsCount = 0,
-                passportItemsCount = 0,
-                archivedItemsCount = null,
-                archiveSubText = BitwardenString.premium_subscription_required.asText(),
-                archiveEndIcon = BitwardenDrawable.ic_locked,
-                showCardGroup = true,
-                showBankAccountGroup = false,
-                showLicenseGroup = false,
-                showPassportGroup = false,
-            ),
-            actual,
-        )
-    }
 
     @Test
     fun `toViewState should omit non org related totp codes when user does not have Premium`() {
@@ -545,7 +377,6 @@ class VaultDataExtensionsTest {
             baseIconUrl = Environment.Us.environmentUrlData.baseIconUrl,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = setOf("mockId-1"),
             isNewItemTypesEnabled = false,
         )
 
@@ -560,7 +391,6 @@ class VaultDataExtensionsTest {
                 collectionItems = listOf(),
                 noFolderItems = listOf(),
                 trashItemsCount = 0,
-                totpItemsCount = 1,
                 itemTypesCount = CipherType.entries.size,
                 sshKeyItemsCount = 0,
                 bankAccountItemsCount = 0,
@@ -784,7 +614,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = setOf("mockId-3"),
             isNewItemTypesEnabled = false,
         )
 
@@ -799,7 +628,6 @@ class VaultDataExtensionsTest {
                 collectionItems = listOf(),
                 noFolderItems = listOf(),
                 trashItemsCount = 2,
-                totpItemsCount = 1,
                 itemTypesCount = CipherType.entries.size,
                 sshKeyItemsCount = 0,
                 bankAccountItemsCount = 0,
@@ -839,7 +667,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = emptySet(),
             isNewItemTypesEnabled = false,
         )
 
@@ -854,7 +681,6 @@ class VaultDataExtensionsTest {
                 collectionItems = listOf(),
                 noFolderItems = listOf(),
                 trashItemsCount = 2,
-                totpItemsCount = 0,
                 itemTypesCount = CipherType.entries.size,
                 sshKeyItemsCount = 0,
                 bankAccountItemsCount = 0,
@@ -897,7 +723,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = (0..99).map { "mockId-$it" }.toSet(),
             isNewItemTypesEnabled = false,
         )
 
@@ -918,7 +743,6 @@ class VaultDataExtensionsTest {
                 collectionItems = listOf(),
                 noFolderItems = listOf(),
                 trashItemsCount = 0,
-                totpItemsCount = 100,
                 itemTypesCount = CipherType.entries.size,
                 sshKeyItemsCount = 0,
                 bankAccountItemsCount = 0,
@@ -962,7 +786,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = setOf("mockId-1"),
             isNewItemTypesEnabled = false,
         )
 
@@ -995,7 +818,6 @@ class VaultDataExtensionsTest {
                     ),
                 ),
                 trashItemsCount = 0,
-                totpItemsCount = 1,
                 itemTypesCount = CipherType.entries.size,
                 sshKeyItemsCount = 0,
                 bankAccountItemsCount = 0,
@@ -1045,7 +867,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = setOf("mockId-1"),
             isNewItemTypesEnabled = false,
         )
 
@@ -1092,7 +913,6 @@ class VaultDataExtensionsTest {
                 ),
                 noFolderItems = listOf(),
                 trashItemsCount = 0,
-                totpItemsCount = 1,
                 itemTypesCount = CipherType.entries.size,
                 sshKeyItemsCount = 0,
                 bankAccountItemsCount = 0,
@@ -1150,7 +970,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = listOf("restrict_item_type_policy_id"),
-            validTotpIds = emptySet(),
             isNewItemTypesEnabled = false,
         )
 
@@ -1169,7 +988,6 @@ class VaultDataExtensionsTest {
                 folderItems = listOf(),
                 noFolderItems = listOf(),
                 trashItemsCount = 0,
-                totpItemsCount = 0,
                 itemTypesCount = CipherType.entries.size,
                 archivedItemsCount = 0,
                 archiveSubText = null,
@@ -1219,7 +1037,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = listOf("restrict_item_type_policy_id"),
-            validTotpIds = setOf("mockId-1"),
             isNewItemTypesEnabled = false,
         )
 
@@ -1238,7 +1055,6 @@ class VaultDataExtensionsTest {
                 folderItems = listOf(),
                 noFolderItems = listOf(),
                 trashItemsCount = 0,
-                totpItemsCount = 1,
                 itemTypesCount = CipherType.entries.size,
                 archivedItemsCount = 0,
                 archiveSubText = null,
@@ -1274,7 +1090,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = setOf("mockId-1"),
             isNewItemTypesEnabled = false,
         )
 
@@ -1294,7 +1109,6 @@ class VaultDataExtensionsTest {
                 folderItems = listOf(),
                 noFolderItems = listOf(),
                 trashItemsCount = 0,
-                totpItemsCount = 1,
                 // Verify item types count includes all CipherTypes when showSshKeys is true.
                 itemTypesCount = CipherType.entries.size,
                 archivedItemsCount = 0,
@@ -1345,7 +1159,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = emptySet(),
             isNewItemTypesEnabled = false,
         )
 
@@ -1369,7 +1182,6 @@ class VaultDataExtensionsTest {
                     createMockSshKeyVaultItem(number = 3),
                 ),
                 trashItemsCount = 0,
-                totpItemsCount = 0,
                 itemTypesCount = CipherType.entries.size,
                 archivedItemsCount = 0,
                 archiveSubText = null,
@@ -1434,7 +1246,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = emptySet(),
             isNewItemTypesEnabled = true,
         )
 
@@ -1458,7 +1269,6 @@ class VaultDataExtensionsTest {
                     createMockBankAccountVaultItem(number = 3),
                 ),
                 trashItemsCount = 0,
-                totpItemsCount = 0,
                 itemTypesCount = CipherType.entries.size,
                 archivedItemsCount = 0,
                 archiveSubText = null,
@@ -1508,7 +1318,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = emptySet(),
             isNewItemTypesEnabled = true,
         )
 
@@ -1532,7 +1341,6 @@ class VaultDataExtensionsTest {
                     createMockLicenseVaultItem(number = 3),
                 ),
                 trashItemsCount = 0,
-                totpItemsCount = 0,
                 itemTypesCount = CipherType.entries.size,
                 archivedItemsCount = 0,
                 archiveSubText = null,
@@ -1582,7 +1390,6 @@ class VaultDataExtensionsTest {
             vaultFilterType = VaultFilterType.AllVaults,
             hasMasterPassword = true,
             restrictItemTypesPolicyOrgIds = emptyList(),
-            validTotpIds = emptySet(),
             isNewItemTypesEnabled = true,
         )
 
@@ -1606,7 +1413,6 @@ class VaultDataExtensionsTest {
                     createMockPassportVaultItem(number = 3),
                 ),
                 trashItemsCount = 0,
-                totpItemsCount = 0,
                 itemTypesCount = CipherType.entries.size,
                 archivedItemsCount = 0,
                 archiveSubText = null,

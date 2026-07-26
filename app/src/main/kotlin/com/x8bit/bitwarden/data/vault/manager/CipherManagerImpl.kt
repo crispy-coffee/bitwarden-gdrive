@@ -50,6 +50,7 @@ import com.x8bit.bitwarden.data.vault.repository.util.toEncryptedNetworkCipherRe
 import com.x8bit.bitwarden.data.vault.repository.util.toEncryptedSdkCipher
 import com.x8bit.bitwarden.data.vault.repository.util.toNetworkAttachmentRequest
 import kotlinx.coroutines.CoroutineScope
+import timber.log.Timber
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -309,9 +310,11 @@ class CipherManagerImpl(
         val userId = activeUserId ?: return NoActiveUserException().asFailure()
 
         if (attachmentId.startsWith("gdrive_")) {
+            Timber.d("Deleting Google Drive attachment: %s", attachmentId)
             val driveFileId = attachmentId.removePrefix("gdrive_")
             val driveDeleteResult = googleDriveManager.deleteFile(driveFileId)
             if (driveDeleteResult.isFailure) {
+                Timber.e("Google Drive delete failed")
                 return IllegalStateException("Google Drive delete failed. Please check your Google Drive connection in Settings.").asFailure()
             }
 
@@ -322,6 +325,7 @@ class CipherManagerImpl(
 
             val updateResult = updateCipher(cipherId, updatedCipherView)
             return if (updateResult is UpdateCipherResult.Success) {
+                Timber.d("Local cipher updated after GDrive attachment deletion")
                 updatedCipherView.encryptCipherAndCheckForMigration(userId = userId, cipherId = cipherId)
             } else {
                 val error = (updateResult as? UpdateCipherResult.Error)?.error
@@ -330,6 +334,7 @@ class CipherManagerImpl(
             }
         }
 
+        Timber.d("Deleting standard attachment: %s", attachmentId)
         return ciphersService
             .deleteCipherAttachment(
                 cipherId = cipherId,
@@ -534,11 +539,17 @@ class CipherManagerImpl(
     ): Result<CipherView> {
         val userId = activeUserId ?: return NoActiveUserException().asFailure()
 
+        Timber.d("Creating attachment for cipher: %s", cipherId)
         return fileManager.writeUriToCache(fileUri)
             .flatMap { cacheFile ->
+                Timber.d("File cached, uploading to Google Drive...")
                 val driveFileId = googleDriveManager.uploadFile(cacheFile, fileName ?: "attachment")
-                    ?: return@flatMap IllegalStateException("Google Drive upload failed. Please check your Google Drive connection in Settings.").asFailure()
+                    ?: run {
+                        Timber.e("Google Drive upload failed")
+                        return@flatMap IllegalStateException("Google Drive upload failed. Please check your Google Drive connection in Settings.").asFailure()
+                    }
 
+                Timber.d("Upload successful, Drive ID: %s", driveFileId)
                 val sizeName = fileSizeBytes?.toLongOrNull()?.formatBytes()
                 val attachmentView = AttachmentView(
                     id = "gdrive_$driveFileId",

@@ -23,4 +23,5 @@ data class VaultItemStateData(
     val canEdit: Boolean,
     val relatedLocations: ImmutableList<VaultItemLocation>,
     val hasOrganizations: Boolean,
+    val driveFileIds: Set<String>? = null,
 )
