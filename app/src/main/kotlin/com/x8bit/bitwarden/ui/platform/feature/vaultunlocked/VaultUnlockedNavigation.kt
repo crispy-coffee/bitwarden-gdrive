@@ -79,6 +79,7 @@ import com.x8bit.bitwarden.ui.vault.feature.movetoorganization.vaultMoveToOrgani
 import com.x8bit.bitwarden.ui.vault.feature.qrcodescan.navigateToQrCodeScanScreen
 import com.x8bit.bitwarden.ui.vault.feature.qrcodescan.vaultQrCodeScanDestination
 import kotlinx.serialization.Serializable
+import com.x8bit.bitwarden.ui.platform.feature.settings.vault.navigateToCustomization
 
 /**
  * The type-safe route for the vault unlocked graph.
@@ -159,6 +160,9 @@ fun NavGraphBuilder.vaultUnlockedGraph(
             onNavigateToRecordedLogs = { navController.navigateToRecordedLogs(isPreAuth = false) },
             onNavigateToAboutPrivilegedApps = {
                 navController.navigateToAboutPrivilegedAppsScreen()
+            },
+            onNavigateToVaultHomeCustomization = {
+                navController.navigateToCustomization()
             },
             onNavigateToPlan = { navController.navigateToPlanModal() },
             onNavigateToUpgradedToPremium = {

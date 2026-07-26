@@ -175,4 +175,14 @@ interface VaultRepository :
      * `null` if the item cannot be found.
      */
     fun getVaultListItemStateFlow(itemId: String): StateFlow<DataState<CipherListView?>>
+
+    /**
+     * Flow that triggers when attachments have been modified.
+     */
+    val attachmentsRefreshFlow: Flow<Unit>
+
+    /**
+     * Triggers a refresh for attachments.
+     */
+    fun refreshAttachments()
 }

@@ -713,6 +713,30 @@ class SettingsRepositoryImpl(
             settingsDiskSource.storeGoogleDriveAccountEmail(userId = userId, email = value)
         }
 
+    override var hiddenVaultItemTypes: Set<String>
+        get() = activeUserId?.let { settingsDiskSource.getHiddenVaultItemTypes(it) } ?: emptySet()
+        set(value) {
+            val userId = activeUserId ?: return
+            settingsDiskSource.storeHiddenVaultItemTypes(userId = userId, types = value)
+        }
+
+    override val hiddenVaultItemTypesFlow: Flow<Set<String>>
+        get() = activeUserId?.let {
+            settingsDiskSource.getHiddenVaultItemTypesFlow(it).map { it ?: emptySet() }
+        } ?: flowOf(emptySet())
+
+    override var hiddenVaultHomeSections: Set<String>
+        get() = activeUserId?.let { settingsDiskSource.getHiddenVaultHomeSections(it) } ?: emptySet()
+        set(value) {
+            val userId = activeUserId ?: return
+            settingsDiskSource.storeHiddenVaultHomeSections(userId = userId, sections = value)
+        }
+
+    override val hiddenVaultHomeSectionsFlow: Flow<Set<String>>
+        get() = activeUserId?.let {
+            settingsDiskSource.getHiddenVaultHomeSectionsFlow(it).map { it ?: emptySet() }
+        } ?: flowOf(emptySet())
+
     /**
      * If there isn't already one generated, generate a symmetric sync key that would be used
      * for communicating via IPC.

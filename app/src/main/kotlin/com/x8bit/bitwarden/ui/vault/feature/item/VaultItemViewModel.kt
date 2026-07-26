@@ -57,11 +57,15 @@ import com.x8bit.bitwarden.ui.vault.model.VaultLinkedFieldType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.IgnoredOnParcel
@@ -119,12 +123,25 @@ class VaultItemViewModel @Inject constructor(
             event = OrganizationEvent.CipherClientViewed(cipherId = state.vaultItemId),
         )
 
-        val driveFileIdsFlow = MutableStateFlow<Set<String>?>(null)
-        viewModelScope.launch {
-            if (googleDriveManager.isSignedId()) {
-                driveFileIdsFlow.value = googleDriveManager.listFiles().map { it.id }.toSet()
+        @OptIn(ExperimentalCoroutinesApi::class)
+        val driveFileIdsFlow = vaultRepository.attachmentsRefreshFlow
+            .onStart { emit(Unit) }
+            .flatMapLatest {
+                flow {
+                    val isConnected = googleDriveManager.isSignedId()
+                    if (isConnected) {
+                        try {
+                            val files = googleDriveManager.listFiles()
+                                .associate { it.id to it.modifiedTime?.toString() }
+                            emit(files to true)
+                        } catch (_: Exception) {
+                            emit(null to true)
+                        }
+                    } else {
+                        emit(null to false)
+                    }
+                }
             }
-        }
 
         combine(
             vaultRepository.getVaultItemStateFlow(state.vaultItemId),
@@ -139,7 +156,10 @@ class VaultItemViewModel @Inject constructor(
             val authCodeState = args[2] as DataState<VerificationCodeItem?>
             val collectionsState = args[3] as DataState<List<CollectionView>>
             val folderState = args[4] as DataState<List<FolderView>>
-            val driveFileIds = args[5] as Set<String>?
+            @Suppress("UNCHECKED_CAST")
+            val driveFileIdsAndConnected = args[5] as Pair<Map<String, String?>?, Boolean>
+            val driveFileIdsMap = driveFileIdsAndConnected.first
+            val isGoogleDriveConnected = driveFileIdsAndConnected.second
 
             val totpCodeData = authCodeState.data?.let {
                 TotpCodeItemData(
@@ -240,7 +260,8 @@ class VaultItemViewModel @Inject constructor(
                             canEdit = canEdit,
                             relatedLocations = relatedLocations,
                             hasOrganizations = hasOrganizations,
-                            driveFileIds = driveFileIds,
+                            driveFileIdsMap = driveFileIdsMap,
+                            isGoogleDriveConnected = isGoogleDriveConnected,
                         )
                     },
             )
@@ -325,6 +346,8 @@ class VaultItemViewModel @Inject constructor(
             }
 
             is VaultItemAction.Common.AttachmentsClick -> handleAttachmentsClick()
+            is VaultItemAction.Common.ReconnectGoogleDriveClick -> handleReconnectGoogleDriveClick()
+            is VaultItemAction.Common.LifecycleResumed -> handleLifecycleResumed()
             is VaultItemAction.Common.CloneClick -> handleCloneClick()
             is VaultItemAction.Common.MoveToOrganizationClick -> handleMoveToOrganizationClick()
             is VaultItemAction.Common.CollectionsClick -> handleCollectionsClick()
@@ -542,6 +565,20 @@ class VaultItemViewModel @Inject constructor(
 
     private fun handleAttachmentsClick() {
         sendEvent(VaultItemEvent.NavigateToAttachments(itemId = state.vaultItemId))
+    }
+
+    private fun handleLifecycleResumed() {
+        vaultRepository.refreshAttachments()
+    }
+
+    private fun handleReconnectGoogleDriveClick() {
+        sendEvent(VaultItemEvent.LaunchGoogleSignIn)
+    }
+
+    private fun handleGoogleSignInResult(success: Boolean) {
+        if (success) {
+            vaultRepository.refreshAttachments()
+        }
     }
 
     private fun handleCloneClick() {
@@ -1445,6 +1482,10 @@ class VaultItemViewModel @Inject constructor(
                 handleIsIconLoadingDisabledUpdateReceive(action)
             }
 
+            is VaultItemAction.Internal.GoogleSignInResultReceive -> {
+                handleGoogleSignInResult(action.success)
+            }
+
             is VaultItemAction.Internal.ArchiveCipherReceive -> handleArchiveCipherReceive(action)
             is VaultItemAction.Internal.UnarchiveCipherReceive -> {
                 handleUnarchiveCipherReceive(action)
@@ -1576,7 +1617,8 @@ class VaultItemViewModel @Inject constructor(
             isIconLoadingDisabled = settingsRepository.isIconLoadingDisabled,
             relatedLocations = this.data?.relatedLocations.orEmpty().toImmutableList(),
             hasOrganizations = this.data?.hasOrganizations == true,
-            driveFileIds = this.data?.driveFileIds,
+            driveFileIdsMap = this.data?.driveFileIdsMap,
+            isGoogleDriveConnected = this.data?.isGoogleDriveConnected ?: true,
         )
         ?: VaultItemState.ViewState.Error(message = errorText)
 
@@ -2040,6 +2082,7 @@ data class VaultItemState(
                 val iconData: IconData,
                 val relatedLocations: ImmutableList<VaultItemLocation>,
                 val hasOrganizations: Boolean,
+                val isGoogleDriveConnected: Boolean,
             ) : Parcelable {
 
                 /**
@@ -2053,6 +2096,7 @@ data class VaultItemState(
                     val url: String,
                     val isLargeFile: Boolean,
                     val isDownloadAllowed: Boolean,
+                    val modifiedDate: String? = null,
                 ) : Parcelable
 
                 /**
@@ -2554,6 +2598,11 @@ sealed class VaultItemEvent {
     ) : VaultItemEvent()
 
     /**
+     * Launches the Google Sign-In flow.
+     */
+    data object LaunchGoogleSignIn : VaultItemEvent()
+
+    /**
      * Share the given [file].
      */
     data class ShareFile(
@@ -2681,6 +2730,16 @@ sealed class VaultItemAction {
          * The user has clicked the attachments button.
          */
         data object AttachmentsClick : Common()
+
+        /**
+         * Indicates the view has been resumed.
+         */
+        data object LifecycleResumed : Common()
+
+        /**
+         * The user clicked the reconnect button for Google Drive.
+         */
+        data object ReconnectGoogleDriveClick : Common()
 
         /**
          * The user has clicked the clone button.
@@ -3087,6 +3146,13 @@ sealed class VaultItemAction {
          */
         data class IsIconLoadingDisabledUpdateReceive(
             val isDisabled: Boolean,
+        ) : Internal()
+
+        /**
+         * Indicates the result of the Google Sign-In flow.
+         */
+        data class GoogleSignInResultReceive(
+            val success: Boolean,
         ) : Internal()
     }
 }

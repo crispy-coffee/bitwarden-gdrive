@@ -284,6 +284,20 @@ class VaultViewModel @Inject constructor(
             .onEach(::sendAction)
             .launchIn(viewModelScope)
 
+        settingsRepository
+            .hiddenVaultItemTypesFlow
+            .onEach {
+                sendAction(VaultAction.Internal.HiddenVaultItemTypesReceive(it))
+            }
+            .launchIn(viewModelScope)
+
+        settingsRepository
+            .hiddenVaultHomeSectionsFlow
+            .onEach {
+                sendAction(VaultAction.Internal.HiddenVaultHomeSectionsReceive(it))
+            }
+            .launchIn(viewModelScope)
+
         policyManager
             .getActivePoliciesFlow(type = PolicyType.RESTRICTED_ITEM_TYPES)
             .map { policies -> policies.map { it.organizationId } }
@@ -1146,6 +1160,14 @@ class VaultViewModel @Inject constructor(
             is VaultAction.Internal.UpgradedToPremiumCardEligibilityReceive -> {
                 handleUpgradedToPremiumCardEligibilityReceive(action)
             }
+
+            is VaultAction.Internal.HiddenVaultHomeSectionsReceive -> {
+                handleHiddenVaultHomeSectionsReceive(action)
+            }
+
+            is VaultAction.Internal.HiddenVaultItemTypesReceive -> {
+                handleHiddenVaultItemTypesReceive(action)
+            }
         }
     }
 
@@ -1287,6 +1309,20 @@ class VaultViewModel @Inject constructor(
         }
     }
 
+    private fun handleHiddenVaultItemTypesReceive(
+        action: VaultAction.Internal.HiddenVaultItemTypesReceive,
+    ) {
+        mutableStateFlow.update { it.copy(hiddenVaultItemTypes = action.hiddenTypes.toImmutableSet()) }
+    }
+
+    private fun handleHiddenVaultHomeSectionsReceive(
+        action: VaultAction.Internal.HiddenVaultHomeSectionsReceive,
+    ) {
+        mutableStateFlow.update {
+            it.copy(hiddenVaultHomeSections = action.hiddenSections.toImmutableSet())
+        }
+    }
+
     private fun handleDecryptionErrorReceive(action: VaultAction.Internal.DecryptionErrorReceive) {
         mutableStateFlow.update {
             it.copy(
@@ -1369,10 +1405,11 @@ class VaultViewModel @Inject constructor(
         // navigating.
         if (state.isSwitchingAccounts) return
 
+        val isIndividualVaultDisabled = policyManager
+            .getActivePolicies(type = PolicyType.ORGANIZATION_DATA_OWNERSHIP)
+            .any() || state.hiddenVaultHomeSections.contains("MY_VAULT")
         val vaultFilterData = userState.activeAccount.toVaultFilterData(
-            isIndividualVaultDisabled = policyManager
-                .getActivePolicies(type = PolicyType.ORGANIZATION_DATA_OWNERSHIP)
-                .any(),
+            isIndividualVaultDisabled = isIndividualVaultDisabled,
         )
         val appBarTitle = vaultFilterData.toAppBarTitle()
         val previousIsPremium = state.isPremium
@@ -1461,6 +1498,8 @@ class VaultViewModel @Inject constructor(
                             isIconLoadingDisabled = state.isIconLoadingDisabled,
                             restrictItemTypesPolicyOrgIds = state.restrictItemTypesPolicyOrgIds,
                             isNewItemTypesEnabled = state.isNewItemTypesEnabled,
+                            hiddenVaultItemTypes = state.hiddenVaultItemTypes,
+                            hiddenVaultHomeSections = state.hiddenVaultHomeSections,
                         ),
                         dialog = VaultState.DialogState.SyncError(
                             title = BitwardenString.vault_sync_unsuccessful.asText(),
@@ -1548,6 +1587,8 @@ class VaultViewModel @Inject constructor(
                     vaultFilterType = vaultFilterTypeOrDefault,
                     restrictItemTypesPolicyOrgIds = state.restrictItemTypesPolicyOrgIds,
                     isNewItemTypesEnabled = state.isNewItemTypesEnabled,
+                    hiddenVaultItemTypes = state.hiddenVaultItemTypes,
+                    hiddenVaultHomeSections = state.hiddenVaultHomeSections,
                 ),
                 dialog = dialog,
                 isRefreshing = false,
@@ -1604,6 +1645,8 @@ class VaultViewModel @Inject constructor(
                     vaultFilterType = vaultFilterTypeOrDefault,
                     restrictItemTypesPolicyOrgIds = state.restrictItemTypesPolicyOrgIds,
                     isNewItemTypesEnabled = state.isNewItemTypesEnabled,
+                    hiddenVaultItemTypes = state.hiddenVaultItemTypes,
+                    hiddenVaultHomeSections = state.hiddenVaultHomeSections,
                 ),
                 validTotpIds = validTotpIds.toImmutableSet(),
             )
@@ -1770,6 +1813,8 @@ data class VaultState(
     val isAwaitingKdfSync: Boolean = false,
     val validTotpIds: ImmutableSet<String>,
     val isNewItemTypesEnabled: Boolean = false,
+    val hiddenVaultItemTypes: ImmutableSet<String> = persistentSetOf(),
+    val hiddenVaultHomeSections: ImmutableSet<String> = persistentSetOf(),
 ) : Parcelable {
 
     /**
@@ -1894,6 +1939,10 @@ data class VaultState(
          * @property showBankAccountGroup Is the bank account group available for display.
          * @property showLicenseGroup Is the license group available for display.
          * @property showPassportGroup Is the passport group available for display.
+         * @property showLoginGroup Is the login group available for display.
+         * @property showIdentityGroup Is the identity group available for display.
+         * @property showSecureNoteGroup Is the secure note group available for display.
+         * @property showSshKeyGroup Is the ssh key group available for display.
          */
         @Parcelize
         data class Content(
@@ -1918,6 +1967,10 @@ data class VaultState(
             val showBankAccountGroup: Boolean,
             val showLicenseGroup: Boolean,
             val showPassportGroup: Boolean,
+            val showLoginGroup: Boolean,
+            val showIdentityGroup: Boolean,
+            val showSecureNoteGroup: Boolean,
+            val showSshKeyGroup: Boolean,
         ) : ViewState() {
             override val hasFab: Boolean get() = true
             override val isPullToRefreshEnabled: Boolean get() = true
@@ -2790,6 +2843,20 @@ sealed class VaultAction {
          */
         data class UpgradedToPremiumCardEligibilityReceive(
             val isEligible: Boolean,
+        ) : Internal()
+
+        /**
+         * Indicates that the set of hidden vault item types has been updated.
+         */
+        data class HiddenVaultItemTypesReceive(
+            val hiddenTypes: Set<String>,
+        ) : Internal()
+
+        /**
+         * Indicates that the set of hidden vault home sections has been updated.
+         */
+        data class HiddenVaultHomeSectionsReceive(
+            val hiddenSections: Set<String>,
         ) : Internal()
     }
 }

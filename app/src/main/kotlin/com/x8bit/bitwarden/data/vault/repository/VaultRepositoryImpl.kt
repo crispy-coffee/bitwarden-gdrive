@@ -96,11 +96,19 @@ class VaultRepositoryImpl(
     private val activeUserId: String? get() = authDiskSource.userState?.activeUserId
 
     private val mutableTotpCodeResultFlow = bufferedMutableSharedFlow<TotpCodeResult>()
+    private val mutableAttachmentsRefreshFlow = bufferedMutableSharedFlow<Unit>(replay = 1)
 
     override var vaultFilterType: VaultFilterType = VaultFilterType.AllVaults
 
     override val totpCodeFlow: Flow<TotpCodeResult>
         get() = mutableTotpCodeResultFlow.asSharedFlow()
+
+    override val attachmentsRefreshFlow: Flow<Unit>
+        get() = mutableAttachmentsRefreshFlow.asSharedFlow()
+
+    override fun refreshAttachments() {
+        mutableAttachmentsRefreshFlow.tryEmit(Unit)
+    }
 
     override fun deleteVaultData(userId: String) {
         ioScope.launch {

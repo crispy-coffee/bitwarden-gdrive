@@ -63,6 +63,8 @@ private const val PREMIUM_UPGRADE_PENDING =
     "premiumUpgradePending"
 private const val GOOGLE_DRIVE_LAST_SYNC_TIME = "googleDriveLastSyncTime"
 private const val GOOGLE_DRIVE_ACCOUNT_EMAIL = "googleDriveAccountEmail"
+private const val HIDDEN_VAULT_ITEM_TYPES = "hiddenVaultItemTypes"
+private const val HIDDEN_VAULT_HOME_SECTIONS = "hiddenVaultHomeSections"
 
 /**
  * Primary implementation of [SettingsDiskSource].
@@ -118,6 +120,12 @@ class SettingsDiskSourceImpl(
 
     private val mutableGoogleDriveLastSyncFlowMap =
         mutableMapOf<String, MutableSharedFlow<Instant?>>()
+
+    private val mutableHiddenVaultItemTypesFlowMap =
+        mutableMapOf<String, MutableSharedFlow<Set<String>?>>()
+
+    private val mutableHiddenVaultHomeSectionsFlowMap =
+        mutableMapOf<String, MutableSharedFlow<Set<String>?>>()
 
     private val mutableIsIconLoadingDisabledFlow = bufferedMutableSharedFlow<Boolean?>()
 
@@ -766,6 +774,51 @@ class SettingsDiskSourceImpl(
             value = email,
         )
     }
+
+    override fun getHiddenVaultItemTypes(userId: String): Set<String>? =
+        getStringSet(key = HIDDEN_VAULT_ITEM_TYPES.appendIdentifier(userId), default = null)
+
+    override fun storeHiddenVaultItemTypes(userId: String, types: Set<String>?) {
+        putStringSet(
+            key = HIDDEN_VAULT_ITEM_TYPES.appendIdentifier(userId),
+            value = types,
+        )
+        getMutableHiddenVaultItemTypesFlow(userId).tryEmit(types)
+    }
+
+    override fun getHiddenVaultItemTypesFlow(userId: String): Flow<Set<String>?> =
+        getMutableHiddenVaultItemTypesFlow(userId)
+            .onSubscription { emit(getHiddenVaultItemTypes(userId)) }
+
+    override fun getHiddenVaultHomeSections(userId: String): Set<String>? =
+        getStringSet(key = HIDDEN_VAULT_HOME_SECTIONS.appendIdentifier(userId), default = null)
+
+    override fun storeHiddenVaultHomeSections(userId: String, sections: Set<String>?) {
+        val filteredSections = sections?.filter { it != "MY_VAULT" }?.toSet()
+        putStringSet(
+            key = HIDDEN_VAULT_HOME_SECTIONS.appendIdentifier(userId),
+            value = filteredSections,
+        )
+        getMutableHiddenVaultHomeSectionsFlow(userId).tryEmit(filteredSections)
+    }
+
+    override fun getHiddenVaultHomeSectionsFlow(userId: String): Flow<Set<String>?> =
+        getMutableHiddenVaultHomeSectionsFlow(userId)
+            .onSubscription { emit(getHiddenVaultHomeSections(userId)) }
+
+    private fun getMutableHiddenVaultItemTypesFlow(
+        userId: String,
+    ): MutableSharedFlow<Set<String>?> =
+        mutableHiddenVaultItemTypesFlowMap.getOrPut(userId) {
+            bufferedMutableSharedFlow(replay = 1)
+        }
+
+    private fun getMutableHiddenVaultHomeSectionsFlow(
+        userId: String,
+    ): MutableSharedFlow<Set<String>?> =
+        mutableHiddenVaultHomeSectionsFlowMap.getOrPut(userId) {
+            bufferedMutableSharedFlow(replay = 1)
+        }
 
     private fun getMutableGoogleDriveLastSyncFlow(
         userId: String,

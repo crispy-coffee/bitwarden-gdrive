@@ -1,34 +1,45 @@
-# Implementation Plan - Fix `totpItemsCount` build error
+# Implementation Plan - UX Fixes & Refinements (Turn 4)
 
-This plan addresses the build error `No parameter with name 'totpItemsCount' found` in `VaultDataExtensions.kt`. It appears `totpItemsCount` was removed from the `VaultState.ViewState.Content` data class but not all usages were updated.
+This plan addresses the PDF preview crash, refines the "Customization" screen, and cleans up the Home screen UI.
 
 ## Proposed Changes
 
-### [app]
+### 1. PDF Preview Fix (Crash Resolution)
+- **File**: [PdfPreviewContent.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/vault/feature/attachments/preview/component/PdfPreviewContent.kt)
+- **Change**: Implement a custom `Saver` for the `Offset` class and use it with `rememberSaveable`.
+- **Reason**: The app currently crashes because `Offset` is not natively saveable in a `Bundle`. A custom `Saver` will allow the pan/zoom state to survive device rotation smoothly without triggering an `IllegalArgumentException`.
 
-#### [MODIFY] [VaultDataExtensions.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/vault/feature/vault/util/VaultDataExtensions.kt)
-- Remove `validTotpIds: Set<String>` parameter from `toViewState` function.
-- Remove `totpItemsCount` calculation and assignment within `toViewState`.
+### 2. Customization Screen Refinement
+- **File**: [SettingsViewModel.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/platform/feature/settings/SettingsViewModel.kt)
+- **Change**:
+    - Rename `VAULT_HOME_CUSTOMIZATION` to `CUSTOMIZATION`.
+    - Update label to "Customization".
+    - Change icon from `ic_paintbrush` to `ic_filter` (visually distinct from Appearance).
+- **File**: [VaultHomeCustomizationScreen.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/platform/feature/settings/vault/VaultHomeCustomizationScreen.kt)
+- **Change**:
+    - Update title to "Customization".
+    - Reorganize into "Navigation" and "Vault Types" sections.
+    - Generate the list of types dynamically using `VaultItemCipherType.entries` instead of hardcoding.
+- **Reason**: To provide a cleaner, professional, and future-proof customization experience.
 
-#### [MODIFY] [VaultViewModel.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/vault/feature/vault/VaultViewModel.kt)
-- Update all calls to `toViewState` to remove the `validTotpIds` argument.
+### 3. Home Screen Cleanup
+- **File**: [VaultDataExtensions.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/vault/feature/vault/util/VaultDataExtensions.kt)
+- **Change**:
+    - Ensure `folderItems` strictly filters out the "No Folder" group (where `id == null`).
+    - Keep `noFolderItems` as an empty list for the Home screen state.
+- **File**: [VaultContent.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/vault/feature/vault/VaultContent.kt)
+- **Change**: Remove the logic for rendering ungrouped items or the "No Folder" header.
+- **Reason**: To simplify the Home screen while preserving the underlying folder logic in "My Vault" and search.
 
-#### [MODIFY] [VaultDataExtensionsTest.kt](file:///C:/Project/Bitwarden/android/app/src/test/kotlin/com/x8bit/bitwarden/ui/vault/feature/vault/util/VaultDataExtensionsTest.kt)
-- Update all calls to `toViewState` to remove the `validTotpIds` argument.
-- Remove `totpItemsCount` from `ViewState.Content` expected values and assertions.
-
-#### [MODIFY] [VaultScreenTest.kt](file:///C:/Project/Bitwarden/android/app/src/test/kotlin/com/x8bit/bitwarden/ui/vault/feature/vault/VaultScreenTest.kt)
-- Remove `totpItemsCount` from `ViewState.Content` initializations.
-
-#### [MODIFY] [VaultViewModelTest.kt](file:///C:/Project/Bitwarden/android/app/src/test/kotlin/com/x8bit/bitwarden/ui/vault/feature/vault/VaultViewModelTest.kt)
-- Remove `totpItemsCount` from `ViewState.Content` initializations.
-- Update calls to `toViewState`.
-
-#### [MODIFY] [VaultStateExtensionsTest.kt](file:///C:/Project/Bitwarden/android/app/src/test/kotlin/com/x8bit/bitwarden/ui/vault/feature/vault/util/VaultStateExtensionsTest.kt)
-- Remove `totpItemsCount` from `ViewState.Content` initializations.
+---
 
 ## Verification Plan
 
 ### Automated Tests
-- Run `:app:compileStandardDebugKotlin` to verify the build error is fixed.
-- Run tests in `VaultDataExtensionsTest.kt`, `VaultScreenTest.kt`, `VaultViewModelTest.kt`, and `VaultStateExtensionsTest.kt` to ensure no regressions.
+- Verify successful project build: `./gradlew :app:compileStandardDebugKotlin`.
+
+### Manual Verification
+- **PDF**: Open a PDF, zoom in, and rotate the device. Verify the zoom level and position are preserved and no crash occurs.
+- **Customization**: Verify the entry in main Settings has the new icon and label. Verify all vault types are present in the customization list.
+- **Filtering**: Disable "Secure Note", verify it disappears from the Home screen.
+- **Home UI**: Verify "No Folder" section is absent even if ungrouped items exist.

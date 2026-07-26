@@ -104,8 +104,8 @@ fun GoogleDriveScreen(
 
     val pullToRefreshState = rememberBitwardenPullToRefreshState(
         isEnabled = state.isSignedId,
-        isRefreshing = state.isLoading,
-        onRefresh = { viewModel.refresh() },
+        isRefreshing = state.isRefreshing,
+        onRefresh = { viewModel.refresh(isPullToRefresh = true) },
     )
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())

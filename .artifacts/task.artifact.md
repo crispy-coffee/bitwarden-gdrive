@@ -1,10 +1,11 @@
-- [ ] Fix `totpItemsCount` build error
-    - [ ] [Modify] `VaultDataExtensions.kt` to remove `totpItemsCount` logic.
-    - [ ] [Modify] `VaultViewModel.kt` to update `toViewState` calls.
-    - [ ] [Modify] `VaultDataExtensionsTest.kt` to update tests.
-    - [ ] [Modify] `VaultScreenTest.kt` to update tests.
-    - [ ] [Modify] `VaultViewModelTest.kt` to update tests.
-    - [ ] [Modify] `VaultStateExtensionsTest.kt` to update tests.
-- [ ] Verify build and tests
+- [ ] Fix PDF Preview Crash
+    - [ ] [Modify] `PdfPreviewContent.kt` to add a `Saver` for `Offset`.
+- [ ] Refine Customization Screen
+    - [ ] [Modify] `SettingsViewModel.kt` to rename the entry and update the icon.
+    - [ ] [Modify] `VaultHomeCustomizationScreen.kt` to use dynamic types and sectioned UI.
+- [ ] Clean up Home Screen
+    - [ ] [Modify] `VaultDataExtensions.kt` to filter out "No Folder" group.
+    - [ ] [Modify] `VaultContent.kt` to remove "No Folder" rendering.
+- [ ] Verify build and functionality
     - [ ] Run `:app:compileStandardDebugKotlin`.
-    - [ ] Run affected tests.
+    - [ ] Manual verification of PDF and filtering.

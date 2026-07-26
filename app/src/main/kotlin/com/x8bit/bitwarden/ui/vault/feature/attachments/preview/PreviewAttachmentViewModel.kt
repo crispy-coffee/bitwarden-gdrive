@@ -419,9 +419,7 @@ class PreviewAttachmentViewModel @Inject constructor(
     }
 
     private fun handleBitmapRenderComplete() {
-        onContent { content ->
-            viewModelScope.launch { fileManager.delete(content.file) }
-        }
+        // Do nothing, we keep the file for rotation/zoom support
     }
 
     private fun handleBitmapRenderError() {
@@ -436,13 +434,20 @@ class PreviewAttachmentViewModel @Inject constructor(
     }
 
     private fun handleFileMissing() {
-        onContent { content ->
-            viewModelScope.launch { fileManager.delete(content.file) }
-        }
         mutableStateFlow.update {
             it.copy(viewState = PreviewAttachmentState.ViewState.Loading())
         }
         refreshDataFlow.tryEmit(Unit)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        viewModelScope.launch {
+            temporaryAttachmentData?.let { fileManager.delete(it) }
+            (state.viewState as? PreviewAttachmentState.ViewState.Content)?.let {
+                fileManager.delete(it.file)
+            }
+        }
     }
 
     private fun CipherView?.toViewState(

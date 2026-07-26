@@ -12,8 +12,10 @@ import com.x8bit.bitwarden.data.platform.manager.FirstTimeActionManager
 import com.x8bit.bitwarden.data.platform.manager.PolicyManager
 import com.x8bit.bitwarden.data.platform.manager.SpecialCircumstanceManager
 import com.x8bit.bitwarden.data.platform.manager.model.SpecialCircumstance
+import com.x8bit.bitwarden.data.platform.repository.SettingsRepository
 import com.x8bit.bitwarden.ui.platform.feature.vaultunlockednavbar.model.VaultUnlockedNavBarTab
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -25,6 +27,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class VaultUnlockedNavBarViewModel @Inject constructor(
+    private val settingsRepository: SettingsRepository,
     authRepository: AuthRepository,
     specialCircumstancesManager: SpecialCircumstanceManager,
     firstTimeActionManager: FirstTimeActionManager,
@@ -37,7 +40,8 @@ class VaultUnlockedNavBarViewModel @Inject constructor(
         ),
         areSendsDisabled = policyManager
             .getActivePolicies(type = PolicyType.DISABLE_SEND)
-            .any(),
+            .any() || settingsRepository.hiddenVaultHomeSections.contains("SEND"),
+        isGeneratorDisabled = settingsRepository.hiddenVaultHomeSections.contains("GENERATOR"),
     ),
 ) {
     init {
@@ -57,8 +61,18 @@ class VaultUnlockedNavBarViewModel @Inject constructor(
 
         policyManager
             .getActivePoliciesFlow(type = PolicyType.DISABLE_SEND)
-            .map { VaultUnlockedNavBarAction.Internal.SendPolicyUpdateReceive(it.any()) }
+            .combine(settingsRepository.hiddenVaultHomeSectionsFlow) { policies, hiddenSections ->
+                policies.any() || hiddenSections.contains("SEND")
+            }
+            .map { VaultUnlockedNavBarAction.Internal.SendPolicyUpdateReceive(it) }
             .onEach(::sendAction)
+            .launchIn(viewModelScope)
+
+        settingsRepository.hiddenVaultHomeSectionsFlow
+            .map { it.contains("GENERATOR") }
+            .onEach {
+                sendAction(VaultUnlockedNavBarAction.Internal.GeneratorPolicyUpdateReceive(it))
+            }
             .launchIn(viewModelScope)
 
         when (specialCircumstancesManager.specialCircumstance) {
@@ -127,6 +141,10 @@ class VaultUnlockedNavBarViewModel @Inject constructor(
 
             is VaultUnlockedNavBarAction.Internal.SendPolicyUpdateReceive -> {
                 handleSendPolicyUpdateReceive(action)
+            }
+
+            is VaultUnlockedNavBarAction.Internal.GeneratorPolicyUpdateReceive -> {
+                handleGeneratorPolicyUpdateReceive(action)
             }
         }
     }
@@ -198,6 +216,12 @@ class VaultUnlockedNavBarViewModel @Inject constructor(
     ) {
         mutableStateFlow.update { it.copy(areSendsDisabled = action.hasPolicy) }
     }
+
+    private fun handleGeneratorPolicyUpdateReceive(
+        action: VaultUnlockedNavBarAction.Internal.GeneratorPolicyUpdateReceive,
+    ) {
+        mutableStateFlow.update { it.copy(isGeneratorDisabled = action.hasPolicy) }
+    }
     // #endregion BottomTabViewModel Action Handlers
 }
 
@@ -208,6 +232,7 @@ data class VaultUnlockedNavBarState(
     @field:StringRes val vaultNavBarLabelRes: Int,
     val notificationState: VaultUnlockedNavBarNotificationState,
     val areSendsDisabled: Boolean,
+    val isGeneratorDisabled: Boolean,
 )
 
 /**
@@ -259,6 +284,11 @@ sealed class VaultUnlockedNavBarAction {
          * Indicates a change to the count of settings notifications to show
          */
         data class SendPolicyUpdateReceive(val hasPolicy: Boolean) : Internal()
+
+        /**
+         * Indicates a change to the count of settings notifications to show
+         */
+        data class GeneratorPolicyUpdateReceive(val hasPolicy: Boolean) : Internal()
     }
 }
 

@@ -41,7 +41,7 @@ class GoogleDriveViewModel @Inject constructor(
             GoogleDriveAction.BackClick -> sendEvent(GoogleDriveEvent.NavigateBack)
             GoogleDriveAction.SignInClick -> {
                 Timber.d("Sign In Clicked")
-                mutableStateFlow.update { it.copy(isLoading = true) }
+                mutableStateFlow.update { it.copy(isLoading = true, error = null) }
                 sendEvent(GoogleDriveEvent.LaunchSignIn)
             }
             GoogleDriveAction.SignOutClick -> {
@@ -50,7 +50,7 @@ class GoogleDriveViewModel @Inject constructor(
             }
             GoogleDriveAction.RefreshClick -> {
                 Timber.d("Refresh Clicked")
-                refresh()
+                refresh(isPullToRefresh = true)
             }
             GoogleDriveAction.LifecycleResumed -> {
                 Timber.d("Lifecycle Resumed - refreshing connection")
@@ -75,14 +75,21 @@ class GoogleDriveViewModel @Inject constructor(
         }
     }
 
-    fun refresh(silent: Boolean = false) {
+    fun refresh(silent: Boolean = false, isPullToRefresh: Boolean = false) {
         viewModelScope.launch {
-            if (!silent) mutableStateFlow.update { it.copy(isLoading = true, error = null) }
+            if (!silent) {
+                if (isPullToRefresh) {
+                    mutableStateFlow.update { it.copy(isRefreshing = true, error = null) }
+                } else {
+                    mutableStateFlow.update { it.copy(isLoading = true, error = null) }
+                }
+            }
 
             if (!networkConnectionManager.isNetworkConnected) {
                 mutableStateFlow.update {
                     it.copy(
                         isLoading = false,
+                        isRefreshing = false,
                         error = if (!silent) "Offline. Please check your internet connection.".asText() else null
                     )
                 }
@@ -96,6 +103,7 @@ class GoogleDriveViewModel @Inject constructor(
                         isSignedId = false,
                         accountInfo = null,
                         isLoading = false,
+                        isRefreshing = false,
                         attachmentCount = 0
                     )
                 }
@@ -110,6 +118,7 @@ class GoogleDriveViewModel @Inject constructor(
                     it.copy(
                         isSignedId = false,
                         isLoading = false,
+                        isRefreshing = false,
                         error = if (!silent) "Connection failed. Please sign in again.".asText() else null
                     )
                 }
@@ -137,6 +146,7 @@ class GoogleDriveViewModel @Inject constructor(
                     attachmentCount = files.size,
                     lastSyncTime = syncTime,
                     isLoading = false,
+                    isRefreshing = false,
                     error = null
                 )
             }
@@ -148,14 +158,14 @@ class GoogleDriveViewModel @Inject constructor(
             refresh()
         } else {
             toastManager.show("Google Sign-In failed or was cancelled.")
-            mutableStateFlow.update { it.copy(isLoading = false) }
+            mutableStateFlow.update { it.copy(isLoading = false, isRefreshing = false) }
         }
     }
 
     fun onSignInError(statusCode: Int) {
         Timber.e("Google Sign-In error: %d", statusCode)
         toastManager.show("Google Sign-In failed with status code: $statusCode")
-        mutableStateFlow.update { it.copy(isLoading = false) }
+        mutableStateFlow.update { it.copy(isLoading = false, isRefreshing = false) }
     }
 }
 
@@ -165,6 +175,7 @@ data class GoogleDriveState(
     val attachmentCount: Int = 0,
     val lastSyncTime: Instant? = null,
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val error: Text? = null
 )
 

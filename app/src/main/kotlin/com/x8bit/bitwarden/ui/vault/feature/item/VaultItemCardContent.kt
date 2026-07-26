@@ -213,7 +213,7 @@ fun VaultItemCardContent(
         )
 
         vaultItemAttachments(
-            attachments = commonState.attachments,
+            commonState = commonState,
             vaultCommonItemTypeHandlers = vaultCommonItemTypeHandlers,
         )
 

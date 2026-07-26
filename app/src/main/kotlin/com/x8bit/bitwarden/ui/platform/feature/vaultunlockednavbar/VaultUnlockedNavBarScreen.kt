@@ -69,6 +69,7 @@ fun VaultUnlockedNavBarScreen(
     onNavigateToImportLogins: () -> Unit,
     onNavigateToAddFolderScreen: (selectedFolderId: String?) -> Unit,
     onNavigateToAboutPrivilegedApps: () -> Unit,
+    onNavigateToVaultHomeCustomization: () -> Unit,
     onNavigateToManageDevices: () -> Unit,
     onNavigateToPlan: () -> Unit,
     onNavigateToUpgradedToPremium: () -> Unit,
@@ -112,6 +113,7 @@ fun VaultUnlockedNavBarScreen(
         onNavigateToFlightRecorder = onNavigateToFlightRecorder,
         onNavigateToRecordedLogs = onNavigateToRecordedLogs,
         onNavigateToAboutPrivilegedApps = onNavigateToAboutPrivilegedApps,
+        onNavigateToVaultHomeCustomization = onNavigateToVaultHomeCustomization,
         onNavigateToManageDevices = onNavigateToManageDevices,
         onNavigateToPlan = onNavigateToPlan,
         onNavigateToUpgradedToPremium = onNavigateToUpgradedToPremium,
@@ -150,6 +152,7 @@ private fun VaultUnlockedNavBarScaffold(
     onNavigateToImportLogins: () -> Unit,
     onNavigateToAddFolderScreen: (selectedFolderId: String?) -> Unit,
     onNavigateToAboutPrivilegedApps: () -> Unit,
+    onNavigateToVaultHomeCustomization: () -> Unit,
     onNavigateToManageDevices: () -> Unit,
     onNavigateToPlan: () -> Unit,
     onNavigateToUpgradedToPremium: () -> Unit,
@@ -162,7 +165,7 @@ private fun VaultUnlockedNavBarScaffold(
     val navigationItems = persistentListOfNotNull<NavigationItem>(
         VaultUnlockedNavBarTab.Vault(labelRes = state.vaultNavBarLabelRes),
         VaultUnlockedNavBarTab.Send.takeUnless { state.areSendsDisabled },
-        VaultUnlockedNavBarTab.Generator,
+        VaultUnlockedNavBarTab.Generator.takeUnless { state.isGeneratorDisabled },
         VaultUnlockedNavBarTab.Settings(state.notificationState.settingsTabNotificationCount),
     )
     BitwardenScaffold(
@@ -237,6 +240,7 @@ private fun VaultUnlockedNavBarScaffold(
                 onNavigateToImportItems = { navController.navigateToImportItemsScreen() },
                 onNavigateToFlightRecorder = onNavigateToFlightRecorder,
                 onNavigateToRecordedLogs = onNavigateToRecordedLogs,
+                onNavigateToVaultHomeCustomization = onNavigateToVaultHomeCustomization,
                 onNavigateToAboutPrivilegedApps = onNavigateToAboutPrivilegedApps,
                 onNavigateToManageDevices = onNavigateToManageDevices,
                 onNavigateToUpgradedToPremium = onNavigateToUpgradedToPremium,

@@ -118,27 +118,27 @@ fun VaultSettingsScreen(
                         .padding(bottom = 16.dp),
                 )
             }
-            BitwardenTextRow(
-                text = stringResource(BitwardenString.folders),
-                onClick = { viewModel.trySendAction(VaultSettingsAction.FoldersButtonClick) },
-                withDivider = false,
-                cardStyle = CardStyle.Top(),
-                modifier = Modifier
-                    .testTag("FoldersLabel")
-                    .standardHorizontalMargin()
-                    .fillMaxWidth(),
-            )
+    BitwardenTextRow(
+        text = stringResource(BitwardenString.folders),
+        onClick = { viewModel.trySendAction(VaultSettingsAction.FoldersButtonClick) },
+        withDivider = false,
+        cardStyle = CardStyle.Top(),
+        modifier = Modifier
+            .testTag("FoldersLabel")
+            .standardHorizontalMargin()
+            .fillMaxWidth(),
+    )
 
-            BitwardenTextRow(
-                text = stringResource(BitwardenString.export_vault),
-                onClick = { viewModel.trySendAction(VaultSettingsAction.ExportVaultClick) },
-                withDivider = false,
-                cardStyle = CardStyle.Middle(),
-                modifier = Modifier
-                    .testTag("ExportVaultLabel")
-                    .standardHorizontalMargin()
-                    .fillMaxWidth(),
-            )
+    BitwardenTextRow(
+        text = stringResource(BitwardenString.export_vault),
+        onClick = { viewModel.trySendAction(VaultSettingsAction.ExportVaultClick) },
+        withDivider = false,
+        cardStyle = CardStyle.Middle(),
+        modifier = Modifier
+            .testTag("ExportVaultLabel")
+            .standardHorizontalMargin()
+            .fillMaxWidth(),
+    )
 
             BitwardenTextRow(
                 text = stringResource(BitwardenString.import_items),

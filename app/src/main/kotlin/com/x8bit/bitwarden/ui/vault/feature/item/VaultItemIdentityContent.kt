@@ -291,7 +291,7 @@ fun VaultItemIdentityContent(
         )
 
         vaultItemAttachments(
-            attachments = commonState.attachments,
+            commonState = commonState,
             vaultCommonItemTypeHandlers = vaultCommonItemTypeHandlers,
         )
 

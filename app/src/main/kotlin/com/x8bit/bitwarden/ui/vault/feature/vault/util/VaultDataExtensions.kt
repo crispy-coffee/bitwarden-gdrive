@@ -23,7 +23,10 @@ import com.x8bit.bitwarden.ui.vault.feature.util.toLabelIcons
 import com.x8bit.bitwarden.ui.vault.feature.util.toOverflowActions
 import com.x8bit.bitwarden.ui.vault.feature.vault.VaultState
 import com.x8bit.bitwarden.ui.vault.feature.vault.model.VaultFilterType
+import com.x8bit.bitwarden.ui.vault.model.VaultItemCipherType
 import com.x8bit.bitwarden.ui.vault.model.findVaultCardBrandWithNameOrNull
+import com.x8bit.bitwarden.ui.vault.util.toSdkCipherType
+import com.x8bit.bitwarden.ui.vault.util.toVaultItemCipherType
 import kotlinx.collections.immutable.persistentListOf
 
 private const val ANDROID_URI = "androidapp://"
@@ -47,6 +50,8 @@ fun VaultData.toViewState(
     vaultFilterType: VaultFilterType,
     restrictItemTypesPolicyOrgIds: List<String>,
     isNewItemTypesEnabled: Boolean,
+    hiddenVaultItemTypes: Set<String> = emptySet(),
+    hiddenVaultHomeSections: Set<String> = emptySet(),
 ): VaultState.ViewState {
     val allCipherViews =
         decryptCipherListResult
@@ -65,7 +70,10 @@ fun VaultData.toViewState(
                 excludeDeleted = false,
             )
 
-    val activeCipherViews = allCipherViews.filter { it.isActive }
+    val activeCipherViews = allCipherViews
+        .filter { it.isActive }
+        .filter { it.type.toSdkCipherType().toVaultItemCipherType().name !in hiddenVaultItemTypes }
+
     val activeDecryptedCipherViews = decryptCipherListResult
         .successes
         .applyFilters(
@@ -74,6 +82,7 @@ fun VaultData.toViewState(
             excludeArchived = true,
             excludeDeleted = true,
         )
+        .filter { it.type.toSdkCipherType().toVaultItemCipherType().name !in hiddenVaultItemTypes }
 
     val activeUndecryptableCipherViews = decryptCipherListResult
         .failures
@@ -86,6 +95,7 @@ fun VaultData.toViewState(
             excludeArchived = true,
             excludeDeleted = true,
         )
+        .filter { it.type.toSdkCipherType().toVaultItemCipherType().name !in hiddenVaultItemTypes }
 
     val filteredFolderViewList = folderViewList
         .toFilteredList(
@@ -101,40 +111,13 @@ fun VaultData.toViewState(
     return if (allCipherViews.isEmpty()) {
         VaultState.ViewState.NoItems
     } else {
-        val itemTypesCount: Int = CipherType.entries.size
-        val noFolderItems = activeDecryptedCipherViews
-            .filter { it.folderId.isNullOrBlank() }
-            .mapNotNull {
-                it.toVaultItemOrNull(
-                    hasMasterPassword = hasMasterPassword,
-                    isIconLoadingDisabled = isIconLoadingDisabled,
-                    baseIconUrl = baseIconUrl,
-                    isPremiumUser = isPremium,
-                    hasDecryptionError = false,
-                )
-            }
-            .plus(
-                elements = activeUndecryptableCipherViews
-                    .filter { it.folderId.isNullOrBlank() }
-                    .mapNotNull {
-                        it.toVaultItemOrNull(
-                            hasMasterPassword = hasMasterPassword,
-                            isIconLoadingDisabled = isIconLoadingDisabled,
-                            baseIconUrl = baseIconUrl,
-                            isPremiumUser = isPremium,
-                            hasDecryptionError = true,
-                        )
-                    },
-            )
-        val shouldShowUnGroupedItems = filteredCollectionViewList.isEmpty() &&
-            noFolderItems.size < NO_FOLDER_ITEM_THRESHOLD
         val cardCount = activeCipherViews.count { it.type is CipherListViewType.Card }
         val archiveCount = allCipherViews.count {
             it.archivedDate != null && it.deletedDate == null
         }
 
         VaultState.ViewState.Content(
-            itemTypesCount = itemTypesCount,
+            itemTypesCount = CipherType.entries.count { it.toVaultItemCipherType().name !in hiddenVaultItemTypes },
             loginItemsCount = activeCipherViews.count { it.type is CipherListViewType.Login },
             cardItemsCount = cardCount,
             identityItemsCount = activeCipherViews
@@ -184,23 +167,8 @@ fun VaultData.toViewState(
                                     folderView.id == it.folderId
                             },
                     )
-                }
-                .let { folderItems ->
-                    if (shouldShowUnGroupedItems) {
-                        folderItems
-                    } else {
-                        folderItems.plus(
-                            VaultState.ViewState.FolderItem(
-                                id = null,
-                                name = BitwardenString.folder_none.asText(),
-                                itemCount = noFolderItems.size,
-                            ),
-                        )
-                    }
                 },
-            noFolderItems = noFolderItems
-                .takeIf { shouldShowUnGroupedItems }
-                .orEmpty(),
+            noFolderItems = emptyList(), // Removed from Home screen
             collectionItems = filteredCollectionViewList
                 .filter { it.id != null }
                 .map { collectionView ->
@@ -221,10 +189,18 @@ fun VaultData.toViewState(
                 .premium_subscription_required
                 .asText()
                 .takeIf { !isPremium && archiveCount == 0 },
-            showCardGroup = cardCount != 0 || restrictItemTypesPolicyOrgIds.isEmpty(),
-            showBankAccountGroup = isNewItemTypesEnabled,
-            showLicenseGroup = isNewItemTypesEnabled,
-            showPassportGroup = isNewItemTypesEnabled,
+            showCardGroup = (cardCount != 0 || restrictItemTypesPolicyOrgIds.isEmpty()) &&
+                VaultItemCipherType.CARD.name !in hiddenVaultItemTypes,
+            showBankAccountGroup = isNewItemTypesEnabled &&
+                VaultItemCipherType.BANK_ACCOUNT.name !in hiddenVaultItemTypes,
+            showLicenseGroup = isNewItemTypesEnabled &&
+                VaultItemCipherType.DRIVERS_LICENSE.name !in hiddenVaultItemTypes,
+            showPassportGroup = isNewItemTypesEnabled &&
+                VaultItemCipherType.PASSPORT.name !in hiddenVaultItemTypes,
+            showLoginGroup = VaultItemCipherType.LOGIN.name !in hiddenVaultItemTypes,
+            showIdentityGroup = VaultItemCipherType.IDENTITY.name !in hiddenVaultItemTypes,
+            showSecureNoteGroup = VaultItemCipherType.SECURE_NOTE.name !in hiddenVaultItemTypes,
+            showSshKeyGroup = VaultItemCipherType.SSH_KEY.name !in hiddenVaultItemTypes,
         )
     }
 }

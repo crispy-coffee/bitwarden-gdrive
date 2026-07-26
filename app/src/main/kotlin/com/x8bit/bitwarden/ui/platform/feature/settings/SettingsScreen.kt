@@ -52,6 +52,7 @@ fun SettingsScreen(
     onNavigateToAutoFill: () -> Unit,
     onNavigateToOther: () -> Unit,
     onNavigateToVault: () -> Unit,
+    onNavigateToVaultHomeCustomization: () -> Unit,
     onNavigateToPlan: () -> Unit,
     onNavigateToGoogleDrive: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
@@ -67,6 +68,7 @@ fun SettingsScreen(
             SettingsEvent.NavigateAutoFill -> onNavigateToAutoFill()
             SettingsEvent.NavigateOther -> onNavigateToOther()
             SettingsEvent.NavigateVault -> onNavigateToVault()
+            SettingsEvent.NavigateCustomization -> onNavigateToVaultHomeCustomization()
             SettingsEvent.NavigateAccountSecurityShortcut -> onNavigateToAccountSecurity()
             SettingsEvent.NavigatePlan -> onNavigateToPlan()
             SettingsEvent.NavigateGoogleDrive -> onNavigateToGoogleDrive()

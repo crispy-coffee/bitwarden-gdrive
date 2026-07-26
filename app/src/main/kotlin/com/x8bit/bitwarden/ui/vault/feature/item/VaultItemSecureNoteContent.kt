@@ -59,7 +59,7 @@ fun VaultItemSecureNoteContent(
         )
 
         vaultItemAttachments(
-            attachments = commonState.attachments,
+            commonState = commonState,
             vaultCommonItemTypeHandlers = vaultCommonItemTypeHandlers,
         )
 

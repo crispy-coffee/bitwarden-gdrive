@@ -13,6 +13,12 @@ import kotlinx.serialization.Serializable
 data object VaultSettingsRoute
 
 /**
+ * The type-safe route for the customization screen.
+ */
+@Serializable
+data object CustomizationRoute
+
+/**
  * Add Vault Settings destinations to the nav graph.
  */
 fun NavGraphBuilder.vaultSettingsDestination(
@@ -31,6 +37,18 @@ fun NavGraphBuilder.vaultSettingsDestination(
             onNavigateToImportItems = onNavigateToImportItems,
         )
     }
+    composableWithPushTransitions<CustomizationRoute> {
+        CustomizationScreen(
+            onNavigateBack = onNavigateBack,
+        )
+    }
+}
+
+/**
+ * Navigate to the Customization screen.
+ */
+fun NavController.navigateToCustomization(navOptions: NavOptions? = null) {
+    this.navigate(route = CustomizationRoute, navOptions = navOptions)
 }
 
 /**

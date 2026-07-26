@@ -23,6 +23,7 @@ data class VaultCommonItemTypeHandlers(
     val onPasswordHistoryClick: () -> Unit,
     val onPremiumRequiredClick: () -> Unit,
     val onUpgradeToPremiumClick: () -> Unit,
+    val onConnectGoogleDriveClick: () -> Unit,
 ) {
     @Suppress("UndocumentedPublicClass")
     companion object {
@@ -71,6 +72,9 @@ data class VaultCommonItemTypeHandlers(
                 },
                 onUpgradeToPremiumClick = {
                     viewModel.trySendAction(VaultItemAction.Common.UpgradeToPremiumClick)
+                },
+                onConnectGoogleDriveClick = {
+                    viewModel.trySendAction(VaultItemAction.Common.ReconnectGoogleDriveClick)
                 },
             )
     }

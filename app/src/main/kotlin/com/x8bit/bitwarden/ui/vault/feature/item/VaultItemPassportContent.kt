@@ -428,7 +428,7 @@ fun VaultItemPassportContent(
         )
 
         vaultItemAttachments(
-            attachments = commonState.attachments,
+            commonState = commonState,
             vaultCommonItemTypeHandlers = vaultCommonItemTypeHandlers,
         )
 
@@ -512,6 +512,7 @@ private val PREVIEW_COMMON: VaultItemState.ViewState.Content.Common =
         iconData = IconData.Local(iconRes = BitwardenDrawable.ic_passport),
         relatedLocations = persistentListOf(),
         hasOrganizations = false,
+        isGoogleDriveConnected = true,
     )
 
 private val PREVIEW_PASSPORT: VaultItemState.ViewState.Content.ItemType.Passport =
@@ -544,6 +545,7 @@ private val PREVIEW_COMMON_HANDLERS: VaultCommonItemTypeHandlers =
         onPasswordHistoryClick = {},
         onPremiumRequiredClick = {},
         onUpgradeToPremiumClick = {},
+        onConnectGoogleDriveClick = {},
     )
 
 private val PREVIEW_PASSPORT_HANDLERS: VaultPassportItemTypeHandlers =

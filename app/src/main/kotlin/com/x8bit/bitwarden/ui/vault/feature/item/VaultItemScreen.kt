@@ -18,9 +18,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bitwarden.core.util.persistentListOfNotNull
 import com.bitwarden.ui.platform.base.util.EventsEffect
+import com.bitwarden.ui.platform.base.util.LifecycleEventEffect
 import com.bitwarden.ui.platform.components.appbar.BitwardenTopAppBar
 import com.bitwarden.ui.platform.components.appbar.action.BitwardenOverflowActionItem
 import com.bitwarden.ui.platform.components.appbar.model.OverflowMenuItemData
@@ -53,6 +55,11 @@ import com.x8bit.bitwarden.ui.vault.feature.item.handlers.VaultPassportItemTypeH
 import com.x8bit.bitwarden.ui.vault.feature.item.handlers.VaultSshKeyItemTypeHandlers
 import com.x8bit.bitwarden.ui.vault.feature.item.handlers.rememberVaultPassportItemTypeHandlers
 import com.x8bit.bitwarden.ui.vault.model.VaultAddEditType
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.api.services.drive.DriveScopes
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 
 /**
  * Displays the vault item screen.
@@ -72,6 +79,20 @@ fun VaultItemScreen(
     onNavigateToPlan: () -> Unit,
 ) {
     val state by viewModel.stateFlow.collectAsStateWithLifecycle()
+    val context = androidx.compose.ui.platform.LocalContext.current
+
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            task.getResult(com.google.android.gms.common.api.ApiException::class.java)
+            viewModel.trySendAction(VaultItemAction.Internal.GoogleSignInResultReceive(true))
+        } catch (_: Exception) {
+            viewModel.trySendAction(VaultItemAction.Internal.GoogleSignInResultReceive(false))
+        }
+    }
+
     val fileChooserLauncher = intentManager.getActivityResultLauncher { activityResult ->
         intentManager.getFileDataFromActivityResult(activityResult)
             ?.let {
@@ -82,6 +103,11 @@ fun VaultItemScreen(
             ?: viewModel.trySendAction(VaultItemAction.Common.NoAttachmentFileLocationReceive)
     }
     val snackbarHostState = rememberBitwardenSnackbarHostState()
+    LifecycleEventEffect { _, event ->
+        if (event == Lifecycle.Event.ON_RESUME) {
+            viewModel.trySendAction(VaultItemAction.Common.LifecycleResumed)
+        }
+    }
     EventsEffect(viewModel = viewModel) { event ->
         when (event) {
             VaultItemEvent.NavigateBack -> onNavigateBack()
@@ -139,6 +165,16 @@ fun VaultItemScreen(
 
             is VaultItemEvent.ShareFile -> {
                 intentManager.shareFile(title = event.fileName, fileUri = event.file.toUri())
+            }
+
+            VaultItemEvent.LaunchGoogleSignIn -> {
+                val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestEmail()
+                    .requestProfile()
+                    .requestScopes(com.google.android.gms.common.api.Scope(DriveScopes.DRIVE_APPDATA))
+                    .build()
+                val googleSignInClient = GoogleSignIn.getClient(context, gso)
+                googleSignInLauncher.launch(googleSignInClient.signInIntent)
             }
         }
     }

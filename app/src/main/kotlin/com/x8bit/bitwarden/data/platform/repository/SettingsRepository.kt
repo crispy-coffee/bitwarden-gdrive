@@ -343,4 +343,24 @@ interface SettingsRepository : FlightRecorderManager {
      * The last connected Google Drive account email.
      */
     var googleDriveAccountEmail: String?
+
+    /**
+     * The set of hidden vault item types for the active user.
+     */
+    var hiddenVaultItemTypes: Set<String>
+
+    /**
+     * Emits updates that track [hiddenVaultItemTypes].
+     */
+    val hiddenVaultItemTypesFlow: Flow<Set<String>>
+
+    /**
+     * The set of hidden vault home sections for the active user.
+     */
+    var hiddenVaultHomeSections: Set<String>
+
+    /**
+     * Emits updates that track [hiddenVaultHomeSections].
+     */
+    val hiddenVaultHomeSectionsFlow: Flow<Set<String>>
 }

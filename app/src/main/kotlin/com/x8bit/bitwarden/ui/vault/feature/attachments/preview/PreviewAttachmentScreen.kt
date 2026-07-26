@@ -119,17 +119,14 @@ fun PreviewAttachmentScreen(
         when (val viewState = state.viewState) {
             is PreviewAttachmentState.ViewState.Content -> {
                 if (state.fileName.lowercase().endsWith(".pdf")) {
-                    BitwardenErrorContent(
-                        message = stringResource(
-                            id = BitwardenString.preview_not_available_for_files,
-                            "PDF",
-                        ),
-                        illustrationData = IconData.Local(iconRes = BitwardenDrawable.ic_file_text),
-                        buttonData = BitwardenButtonData(
-                            label = BitwardenString.share.asText(),
-                            icon = rememberVectorPainter(id = BitwardenDrawable.ic_share_small),
-                            onClick = { viewModel.trySendAction(PreviewAttachmentAction.ShareClick) },
-                        ),
+                    com.x8bit.bitwarden.ui.vault.feature.attachments.preview.component.PdfPreviewContent(
+                        file = viewState.file,
+                        onLoaded = {
+                            viewModel.trySendAction(PreviewAttachmentAction.BitmapRenderComplete)
+                        },
+                        onError = {
+                            viewModel.trySendAction(PreviewAttachmentAction.BitmapRenderError)
+                        },
                         modifier = Modifier.fillMaxSize(),
                     )
                 } else {

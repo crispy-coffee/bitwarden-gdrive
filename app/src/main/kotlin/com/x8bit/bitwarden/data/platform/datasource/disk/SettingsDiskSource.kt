@@ -572,4 +572,34 @@ interface SettingsDiskSource : FlightRecorderDiskSource {
      * Stores the given [email] as the last connected Google Drive account for the given [userId].
      */
     fun storeGoogleDriveAccountEmail(userId: String, email: String?)
+
+    /**
+     * Gets the set of hidden vault item types for the given [userId].
+     */
+    fun getHiddenVaultItemTypes(userId: String): Set<String>?
+
+    /**
+     * Stores the set of hidden vault item types for the given [userId].
+     */
+    fun storeHiddenVaultItemTypes(userId: String, types: Set<String>?)
+
+    /**
+     * Emits updates that track [getHiddenVaultItemTypes] for the given [userId].
+     */
+    fun getHiddenVaultItemTypesFlow(userId: String): Flow<Set<String>?>
+
+    /**
+     * Gets the set of hidden vault home sections for the given [userId].
+     */
+    fun getHiddenVaultHomeSections(userId: String): Set<String>?
+
+    /**
+     * Stores the set of hidden vault home sections for the given [userId].
+     */
+    fun storeHiddenVaultHomeSections(userId: String, sections: Set<String>?)
+
+    /**
+     * Emits updates that track [getHiddenVaultHomeSections] for the given [userId].
+     */
+    fun getHiddenVaultHomeSectionsFlow(userId: String): Flow<Set<String>?>
 }

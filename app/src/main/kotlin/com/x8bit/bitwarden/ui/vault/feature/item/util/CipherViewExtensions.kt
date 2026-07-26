@@ -59,41 +59,45 @@ fun CipherView.toViewState(
     isIconLoadingDisabled: Boolean,
     relatedLocations: ImmutableList<VaultItemLocation>,
     hasOrganizations: Boolean,
-    driveFileIds: Set<String>? = null,
+    driveFileIdsMap: Map<String, String?>? = null,
+    isGoogleDriveConnected: Boolean = true,
 ): VaultItemState.ViewState {
-    val gdriveAttachmentsFromFields = fields
-        .orEmpty()
-        .filter { it.name?.startsWith("__gdrive_attach_") == true }
-        .mapNotNull { field ->
-            val id = field.name?.removePrefix("__gdrive_attach_") ?: return@mapNotNull null
+    val gdriveAttachmentsFromFields = if (isGoogleDriveConnected) {
+        fields
+            .orEmpty()
+            .filter { it.name?.startsWith("__gdrive_attach_") == true }
+            .mapNotNull { field ->
+                val id = field.name?.removePrefix("__gdrive_attach_") ?: return@mapNotNull null
 
-            if (driveFileIds != null) {
-                val driveId = id.removePrefix("gdrive_")
-                if (!driveFileIds.contains(driveId)) return@mapNotNull null
-            }
+                if (driveFileIdsMap != null) {
+                    val driveId = id.removePrefix("gdrive_")
+                    if (!driveFileIdsMap.containsKey(driveId)) return@mapNotNull null
+                }
 
-            val value = field.value ?: ""
-            val parts = if (value.startsWith("v1:")) {
-                value.removePrefix("v1:").split(":")
-            } else {
-                value.split("|")
+                val value = field.value ?: ""
+                val parts = if (value.startsWith("v1:")) {
+                    value.removePrefix("v1:").split(":")
+                } else {
+                    value.split("|")
+                }
+                if (parts.size < 3) return@mapNotNull null
+                val fileName = parts[0]
+                val sizeName = parts[2]
+                VaultItemState.ViewState.Content.Common.AttachmentItem(
+                    id = id,
+                    title = fileName,
+                    displaySize = sizeName,
+                    url = id.removePrefix("gdrive_"),
+                    isLargeFile = try {
+                        (parts[1].toLongOrNull() ?: 0L) >= TEN_MB_IN_BYTES
+                    } catch (_: Exception) {
+                        false
+                    },
+                    isDownloadAllowed = isPremiumUser || this.organizationId != null,
+                    modifiedDate = driveFileIdsMap?.get(id.removePrefix("gdrive_")),
+                )
             }
-            if (parts.size < 3) return@mapNotNull null
-            val fileName = parts[0]
-            val sizeName = parts[2]
-            VaultItemState.ViewState.Content.Common.AttachmentItem(
-                id = id,
-                title = fileName,
-                displaySize = sizeName,
-                url = id.removePrefix("gdrive_"),
-                isLargeFile = try {
-                    (parts[1].toLongOrNull() ?: 0L) >= TEN_MB_IN_BYTES
-                } catch (_: Exception) {
-                    false
-                },
-                isDownloadAllowed = isPremiumUser || this.organizationId != null,
-            )
-        }
+    } else emptyList()
 
     return VaultItemState.ViewState.Content(
         common = VaultItemState.ViewState.Content.Common(
@@ -132,9 +136,13 @@ fun CipherView.toViewState(
                     val id = it.id ?: return@mapNotNull null
                     val fileName = it.fileName ?: return@mapNotNull null
 
-                    if (id.startsWith("gdrive_") && driveFileIds != null) {
-                        val driveId = id.removePrefix("gdrive_")
-                        if (!driveFileIds.contains(driveId)) return@mapNotNull null
+                    if (id.startsWith("gdrive_")) {
+                        if (!isGoogleDriveConnected) return@mapNotNull null
+
+                        if (driveFileIdsMap != null) {
+                            val driveId = id.removePrefix("gdrive_")
+                            if (!driveFileIdsMap.containsKey(driveId)) return@mapNotNull null
+                        }
                     }
 
                     // Recover missing URL for gdrive attachments
@@ -152,6 +160,9 @@ fun CipherView.toViewState(
                         url = url,
                         isLargeFile = it.isLargeFile(),
                         isDownloadAllowed = isPremiumUser || this.organizationId != null,
+                        modifiedDate = if (id.startsWith("gdrive_")) {
+                            driveFileIdsMap?.get(id.removePrefix("gdrive_"))
+                        } else null,
                     )
                 }
                 .orEmpty() + gdriveAttachmentsFromFields)
@@ -170,6 +181,7 @@ fun CipherView.toViewState(
             ),
             relatedLocations = relatedLocations,
             hasOrganizations = hasOrganizations,
+            isGoogleDriveConnected = isGoogleDriveConnected,
         ),
         type = when (type) {
             CipherType.LOGIN -> {

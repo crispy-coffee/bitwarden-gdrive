@@ -378,6 +378,7 @@ class AttachmentsViewModel @Inject constructor(
                 )
                 // Trigger vault sync to refresh data
                 vaultRepo.sync(forced = false)
+                vaultRepo.refreshAttachments()
             }
         }
     }
@@ -408,6 +409,7 @@ class AttachmentsViewModel @Inject constructor(
                 )
                 // Trigger vault sync to refresh data
                 vaultRepo.sync(forced = false)
+                vaultRepo.refreshAttachments()
             }
         }
     }

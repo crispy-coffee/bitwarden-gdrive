@@ -34,6 +34,7 @@ import com.x8bit.bitwarden.ui.platform.feature.settings.flightrecorder.recordedL
 import com.x8bit.bitwarden.ui.platform.feature.settings.googledrive.GoogleDriveScreen
 import com.x8bit.bitwarden.ui.platform.feature.settings.other.navigateToOther
 import com.x8bit.bitwarden.ui.platform.feature.settings.other.otherDestination
+import com.x8bit.bitwarden.ui.platform.feature.settings.vault.navigateToCustomization
 import com.x8bit.bitwarden.ui.platform.feature.settings.vault.navigateToVaultSettings
 import com.x8bit.bitwarden.ui.platform.feature.settings.vault.vaultSettingsDestination
 import com.x8bit.bitwarden.ui.platform.feature.premium.plan.navigateToPlan
@@ -139,6 +140,7 @@ fun NavGraphBuilder.settingsGraph(
     onNavigateToRecordedLogs: () -> Unit,
     onNavigateToImportLogins: () -> Unit,
     onNavigateToImportItems: () -> Unit,
+    onNavigateToVaultHomeCustomization: () -> Unit,
     onNavigateToAboutPrivilegedApps: () -> Unit,
     onNavigateToManageDevices: () -> Unit,
     onNavigateToUpgradedToPremium: () -> Unit,
@@ -155,6 +157,7 @@ fun NavGraphBuilder.settingsGraph(
                 onNavigateToAutoFill = { navController.navigateToAutoFill() },
                 onNavigateToOther = { navController.navigateToOther(isPreAuth = false) },
                 onNavigateToVault = { navController.navigateToVaultSettings() },
+                onNavigateToVaultHomeCustomization = { navController.navigateToCustomization() },
                 onNavigateToPlan = { navController.navigateToPlan() },
                 onNavigateToGoogleDrive = { navController.navigate(SettingsRoute.GoogleDrive) }
             )
@@ -228,6 +231,7 @@ fun NavGraphBuilder.preAuthSettingsDestinations(
             onNavigateToAccountSecurity = { /* no-op */ },
             onNavigateToAutoFill = { /* no-op */ },
             onNavigateToVault = { /* no-op */ },
+            onNavigateToVaultHomeCustomization = { /* no-op */ },
             onNavigateToPlan = { /* no-op */ },
             onNavigateToGoogleDrive = { /* no-op */ },
         )

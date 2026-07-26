@@ -147,7 +147,7 @@ fun VaultItemSshKeyContent(
         )
 
         vaultItemAttachments(
-            attachments = commonState.attachments,
+            commonState = commonState,
             vaultCommonItemTypeHandlers = vaultCommonItemTypeHandlers,
         )
 
