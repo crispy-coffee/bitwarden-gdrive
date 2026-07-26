@@ -116,22 +116,60 @@ fun VaultData.toViewState(
             it.archivedDate != null && it.deletedDate == null
         }
 
+        val vaultTypeItems = VaultItemCipherType.entries.mapNotNull { type ->
+            if (type.name in hiddenVaultItemTypes) return@mapNotNull null
+
+            val count = activeCipherViews.count { it.type.toSdkCipherType().toVaultItemCipherType() == type }
+            val label = when (type) {
+                VaultItemCipherType.LOGIN -> BitwardenString.type_login
+                VaultItemCipherType.CARD -> BitwardenString.type_card
+                VaultItemCipherType.IDENTITY -> BitwardenString.type_identity
+                VaultItemCipherType.SECURE_NOTE -> BitwardenString.type_secure_note
+                VaultItemCipherType.SSH_KEY -> BitwardenString.type_ssh_key
+                VaultItemCipherType.BANK_ACCOUNT -> BitwardenString.type_bank_account
+                VaultItemCipherType.DRIVERS_LICENSE -> BitwardenString.type_license
+                VaultItemCipherType.PASSPORT -> BitwardenString.type_passport
+            }.asText()
+
+            val iconRes = when (type) {
+                VaultItemCipherType.LOGIN -> BitwardenDrawable.ic_globe
+                VaultItemCipherType.CARD -> BitwardenDrawable.ic_payment_card
+                VaultItemCipherType.IDENTITY -> BitwardenDrawable.ic_id_card
+                VaultItemCipherType.SECURE_NOTE -> BitwardenDrawable.ic_note
+                VaultItemCipherType.SSH_KEY -> BitwardenDrawable.ic_ssh_key
+                VaultItemCipherType.BANK_ACCOUNT -> BitwardenDrawable.ic_payment_card
+                VaultItemCipherType.DRIVERS_LICENSE -> BitwardenDrawable.ic_id_card
+                VaultItemCipherType.PASSPORT -> BitwardenDrawable.ic_passport
+            }
+
+            val testTag = when (type) {
+                VaultItemCipherType.LOGIN -> "LoginFilter"
+                VaultItemCipherType.CARD -> "CardFilter"
+                VaultItemCipherType.IDENTITY -> "IdentityFilter"
+                VaultItemCipherType.SECURE_NOTE -> "SecureNoteFilter"
+                VaultItemCipherType.SSH_KEY -> "SshKeyFilter"
+                VaultItemCipherType.BANK_ACCOUNT -> "BankAccountFilter"
+                VaultItemCipherType.DRIVERS_LICENSE -> "LicenseFilter"
+                VaultItemCipherType.PASSPORT -> "PassportFilter"
+            }
+
+            // For cards, we also check the policy
+            if (type == VaultItemCipherType.CARD && cardCount == 0 && restrictItemTypesPolicyOrgIds.isNotEmpty()) {
+                return@mapNotNull null
+            }
+
+            VaultState.ViewState.VaultTypeItem(
+                type = type,
+                label = label,
+                iconRes = iconRes,
+                count = count,
+                testTag = testTag
+            )
+        }
+
         VaultState.ViewState.Content(
-            itemTypesCount = CipherType.entries.count { it.toVaultItemCipherType().name !in hiddenVaultItemTypes },
-            loginItemsCount = activeCipherViews.count { it.type is CipherListViewType.Login },
-            cardItemsCount = cardCount,
-            identityItemsCount = activeCipherViews
-                .count { it.type is CipherListViewType.Identity },
-            secureNoteItemsCount = activeCipherViews
-                .count { it.type is CipherListViewType.SecureNote },
-            sshKeyItemsCount = activeCipherViews
-                .count { it.type is CipherListViewType.SshKey },
-            bankAccountItemsCount = activeCipherViews
-                .count { it.type is CipherListViewType.BankAccount },
-            licenseItemsCount = activeCipherViews
-                .count { it.type is CipherListViewType.DriversLicense },
-            passportItemsCount = activeCipherViews
-                .count { it.type is CipherListViewType.Passport },
+            itemTypesCount = vaultTypeItems.size,
+            vaultTypeItems = vaultTypeItems,
             favoriteItems = activeDecryptedCipherViews
                 .filter { it.favorite }
                 .mapNotNull {
@@ -189,18 +227,6 @@ fun VaultData.toViewState(
                 .premium_subscription_required
                 .asText()
                 .takeIf { !isPremium && archiveCount == 0 },
-            showCardGroup = (cardCount != 0 || restrictItemTypesPolicyOrgIds.isEmpty()) &&
-                VaultItemCipherType.CARD.name !in hiddenVaultItemTypes,
-            showBankAccountGroup = isNewItemTypesEnabled &&
-                VaultItemCipherType.BANK_ACCOUNT.name !in hiddenVaultItemTypes,
-            showLicenseGroup = isNewItemTypesEnabled &&
-                VaultItemCipherType.DRIVERS_LICENSE.name !in hiddenVaultItemTypes,
-            showPassportGroup = isNewItemTypesEnabled &&
-                VaultItemCipherType.PASSPORT.name !in hiddenVaultItemTypes,
-            showLoginGroup = VaultItemCipherType.LOGIN.name !in hiddenVaultItemTypes,
-            showIdentityGroup = VaultItemCipherType.IDENTITY.name !in hiddenVaultItemTypes,
-            showSecureNoteGroup = VaultItemCipherType.SECURE_NOTE.name !in hiddenVaultItemTypes,
-            showSshKeyGroup = VaultItemCipherType.SSH_KEY.name !in hiddenVaultItemTypes,
         )
     }
 }

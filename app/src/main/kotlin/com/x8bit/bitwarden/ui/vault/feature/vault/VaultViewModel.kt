@@ -335,11 +335,9 @@ class VaultViewModel @Inject constructor(
     override fun handleAction(action: VaultAction) {
         when (action) {
             is VaultAction.AddItemClick -> handleAddItemClick(action)
-            is VaultAction.CardGroupClick -> handleCardClick()
             is VaultAction.FolderClick -> handleFolderItemClick(action)
             is VaultAction.CollectionClick -> handleCollectionItemClick(action)
-            is VaultAction.IdentityGroupClick -> handleIdentityClick()
-            is VaultAction.LoginGroupClick -> handleLoginClick()
+            is VaultAction.VaultTypeGroupClick -> handleVaultTypeGroupClick(action)
             is VaultAction.SearchIconClick -> handleSearchIconClick()
             is VaultAction.LockAccountClick -> handleLockAccountClick(action)
             is VaultAction.LogoutAccountClick -> handleLogoutAccountClick(action)
@@ -348,11 +346,6 @@ class VaultViewModel @Inject constructor(
             is VaultAction.SyncClick -> handleSyncClick()
             is VaultAction.LockClick -> handleLockClick()
             is VaultAction.VaultFilterTypeSelect -> handleVaultFilterTypeSelect(action)
-            is VaultAction.SecureNoteGroupClick -> handleSecureNoteClick()
-            is VaultAction.SshKeyGroupClick -> handleSshKeyClick()
-            is VaultAction.BankAccountGroupClick -> handleBankAccountClick()
-            is VaultAction.LicenseGroupClick -> handleLicenseClick()
-            is VaultAction.PassportGroupClick -> handlePassportClick()
             is VaultAction.ArchiveClick -> handleArchiveClick()
             is VaultAction.TrashClick -> handleTrashClick()
             is VaultAction.VaultItemClick -> handleVaultItemClick(action)
@@ -394,6 +387,20 @@ class VaultViewModel @Inject constructor(
             is VaultAction.DismissActionCardClick -> handleDismissActionCardClick(action)
             is VaultAction.ActionCardClick -> handleActionCardClick(action)
         }
+    }
+
+    private fun handleVaultTypeGroupClick(action: VaultAction.VaultTypeGroupClick) {
+        val listingType = when (action.type) {
+            VaultItemCipherType.LOGIN -> VaultItemListingType.Login
+            VaultItemCipherType.CARD -> VaultItemListingType.Card
+            VaultItemCipherType.IDENTITY -> VaultItemListingType.Identity
+            VaultItemCipherType.SECURE_NOTE -> VaultItemListingType.SecureNote
+            VaultItemCipherType.SSH_KEY -> VaultItemListingType.SshKey
+            VaultItemCipherType.BANK_ACCOUNT -> VaultItemListingType.BankAccount
+            VaultItemCipherType.DRIVERS_LICENSE -> VaultItemListingType.License
+            VaultItemCipherType.PASSPORT -> VaultItemListingType.Passport
+        }
+        sendEvent(VaultEvent.NavigateToItemListing(listingType))
     }
 
     private fun handleDismissFlightRecorderSnackbar() {
@@ -587,12 +594,6 @@ class VaultViewModel @Inject constructor(
         }
     }
 
-    private fun handleCardClick() {
-        sendEvent(
-            VaultEvent.NavigateToItemListing(VaultItemListingType.Card),
-        )
-    }
-
     private fun handleFolderItemClick(action: VaultAction.FolderClick) {
         sendEvent(
             VaultEvent.NavigateToItemListing(
@@ -607,14 +608,6 @@ class VaultViewModel @Inject constructor(
                 VaultItemListingType.Collection(action.collectionItem.id),
             ),
         )
-    }
-
-    private fun handleIdentityClick() {
-        sendEvent(VaultEvent.NavigateToItemListing(VaultItemListingType.Identity))
-    }
-
-    private fun handleLoginClick() {
-        sendEvent(VaultEvent.NavigateToItemListing(VaultItemListingType.Login))
     }
 
     private fun handleSearchIconClick() {
@@ -708,26 +701,6 @@ class VaultViewModel @Inject constructor(
 
     private fun handleTrashClick() {
         sendEvent(VaultEvent.NavigateToItemListing(VaultItemListingType.Trash))
-    }
-
-    private fun handleSecureNoteClick() {
-        sendEvent(VaultEvent.NavigateToItemListing(VaultItemListingType.SecureNote))
-    }
-
-    private fun handleSshKeyClick() {
-        sendEvent(VaultEvent.NavigateToItemListing(VaultItemListingType.SshKey))
-    }
-
-    private fun handleLicenseClick() {
-        sendEvent(VaultEvent.NavigateToItemListing(VaultItemListingType.License))
-    }
-
-    private fun handlePassportClick() {
-        sendEvent(VaultEvent.NavigateToItemListing(VaultItemListingType.Passport))
-    }
-
-    private fun handleBankAccountClick() {
-        sendEvent(VaultEvent.NavigateToItemListing(VaultItemListingType.BankAccount))
     }
 
     private fun handleVaultItemClick(action: VaultAction.VaultItemClick) {
@@ -1920,13 +1893,7 @@ data class VaultState(
          * Content state for the [VaultScreen] showing the actual content or items.
          *
          * @property itemTypesCount The count of item types.
-         * @property loginItemsCount The count of Login type items.
-         * @property cardItemsCount The count of Card type items.
-         * @property bankAccountItemsCount The count of Bank Account type items.
-         * @property licenseItemsCount The count of License type items.
-         * @property passportItemsCount The count of Passport type items.
-         * @property identityItemsCount The count of Identity type items.
-         * @property secureNoteItemsCount The count of Secure Notes type items.
+         * @property vaultTypeItems The list of vault type groups to be displayed.
          * @property favoriteItems The list of favorites to be displayed.
          * @property folderItems The list of folders to be displayed.
          * @property noFolderItems The list of non-folders to be displayed.
@@ -1935,26 +1902,11 @@ data class VaultState(
          * @property archivedItemsCount The number of items present in archive.
          * @property archiveSubText The subtext to be displayed on the archive item.
          * @property archiveEndIcon The end icon to be displayed on the archive item.
-         * @property showCardGroup Is the card group available for display.
-         * @property showBankAccountGroup Is the bank account group available for display.
-         * @property showLicenseGroup Is the license group available for display.
-         * @property showPassportGroup Is the passport group available for display.
-         * @property showLoginGroup Is the login group available for display.
-         * @property showIdentityGroup Is the identity group available for display.
-         * @property showSecureNoteGroup Is the secure note group available for display.
-         * @property showSshKeyGroup Is the ssh key group available for display.
          */
         @Parcelize
         data class Content(
             val itemTypesCount: Int,
-            val loginItemsCount: Int,
-            val cardItemsCount: Int,
-            val identityItemsCount: Int,
-            val secureNoteItemsCount: Int,
-            val sshKeyItemsCount: Int,
-            val bankAccountItemsCount: Int,
-            val licenseItemsCount: Int,
-            val passportItemsCount: Int,
+            val vaultTypeItems: List<VaultTypeItem>,
             val favoriteItems: List<VaultItem>,
             val folderItems: List<FolderItem>,
             val noFolderItems: List<VaultItem>,
@@ -1963,18 +1915,22 @@ data class VaultState(
             val archivedItemsCount: Int?,
             val archiveSubText: Text?,
             @field:DrawableRes val archiveEndIcon: Int?,
-            val showCardGroup: Boolean,
-            val showBankAccountGroup: Boolean,
-            val showLicenseGroup: Boolean,
-            val showPassportGroup: Boolean,
-            val showLoginGroup: Boolean,
-            val showIdentityGroup: Boolean,
-            val showSecureNoteGroup: Boolean,
-            val showSshKeyGroup: Boolean,
         ) : ViewState() {
             override val hasFab: Boolean get() = true
             override val isPullToRefreshEnabled: Boolean get() = true
         }
+
+        /**
+         * Represents a vault type group item with a name and item count.
+         */
+        @Parcelize
+        data class VaultTypeItem(
+            val type: VaultItemCipherType,
+            val label: Text,
+            @DrawableRes val iconRes: Int,
+            val count: Int,
+            val testTag: String,
+        ) : Parcelable
 
         /**
          * Represents a folder item with a name and item count.
@@ -2559,24 +2515,11 @@ sealed class VaultAction {
     ) : VaultAction()
 
     /**
-     * User clicked the login types button.
+     * Action to trigger when a specific vault type group is clicked.
      */
-    data object LoginGroupClick : VaultAction()
-
-    /**
-     * User clicked the card types button.
-     */
-    data object CardGroupClick : VaultAction()
-
-    /**
-     * User clicked the identity types button.
-     */
-    data object IdentityGroupClick : VaultAction()
-
-    /**
-     * User clicked the secure notes types button.
-     */
-    data object SecureNoteGroupClick : VaultAction()
+    data class VaultTypeGroupClick(
+        val type: VaultItemCipherType,
+    ) : VaultAction()
 
     /**
      * Click to enabled 3rd party autofill for a browser.
@@ -2606,26 +2549,6 @@ sealed class VaultAction {
      * Click to share all cipher decryption error details.
      */
     data object ShareAllCipherDecryptionErrorsClick : VaultAction()
-
-    /**
-     * User clicked the SSH key types button.
-     */
-    data object SshKeyGroupClick : VaultAction()
-
-    /**
-     * User clicked the bank account types button.
-     */
-    data object BankAccountGroupClick : VaultAction()
-
-    /**
-     * User clicked the license types button.
-     */
-    data object LicenseGroupClick : VaultAction()
-
-    /**
-     * User clicked the passport types button.
-     */
-    data object PassportGroupClick : VaultAction()
 
     /**
      * User clicked the archive button.

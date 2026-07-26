@@ -1,45 +1,26 @@
-# Implementation Plan - UX Fixes & Refinements (Turn 4)
+# Implementation Plan - Dynamic Vault Types (Final Fix)
 
-This plan addresses the PDF preview crash, refines the "Customization" screen, and cleans up the Home screen UI.
+This plan ensures all 8 supported vault item types are visible on the Home screen by removing a specific feature flag filter in the mapping layer.
 
 ## Proposed Changes
 
-### 1. PDF Preview Fix (Crash Resolution)
-- **File**: [PdfPreviewContent.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/vault/feature/attachments/preview/component/PdfPreviewContent.kt)
-- **Change**: Implement a custom `Saver` for the `Offset` class and use it with `rememberSaveable`.
-- **Reason**: The app currently crashes because `Offset` is not natively saveable in a `Bundle`. A custom `Saver` will allow the pan/zoom state to survive device rotation smoothly without triggering an `IllegalArgumentException`.
+### [app]
 
-### 2. Customization Screen Refinement
-- **File**: [SettingsViewModel.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/platform/feature/settings/SettingsViewModel.kt)
-- **Change**:
-    - Rename `VAULT_HOME_CUSTOMIZATION` to `CUSTOMIZATION`.
-    - Update label to "Customization".
-    - Change icon from `ic_paintbrush` to `ic_filter` (visually distinct from Appearance).
-- **File**: [VaultHomeCustomizationScreen.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/platform/feature/settings/vault/VaultHomeCustomizationScreen.kt)
-- **Change**:
-    - Update title to "Customization".
-    - Reorganize into "Navigation" and "Vault Types" sections.
-    - Generate the list of types dynamically using `VaultItemCipherType.entries` instead of hardcoding.
-- **Reason**: To provide a cleaner, professional, and future-proof customization experience.
-
-### 3. Home Screen Cleanup
-- **File**: [VaultDataExtensions.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/vault/feature/vault/util/VaultDataExtensions.kt)
-- **Change**:
-    - Ensure `folderItems` strictly filters out the "No Folder" group (where `id == null`).
-    - Keep `noFolderItems` as an empty list for the Home screen state.
-- **File**: [VaultContent.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/vault/feature/vault/VaultContent.kt)
-- **Change**: Remove the logic for rendering ungrouped items or the "No Folder" header.
-- **Reason**: To simplify the Home screen while preserving the underlying folder logic in "My Vault" and search.
+#### [MODIFY] [VaultDataExtensions.kt](file:///C:/Project/Bitwarden/android/app/src/main/kotlin/com/x8bit/bitwarden/ui/vault/feature/vault/util/VaultDataExtensions.kt)
+- **Change**: Remove the check for `isNewItemTypesEnabled` when generating the `vaultTypeItems` list inside `toViewState`.
+- **Logic**:
+    - Previously, `BANK_ACCOUNT`, `DRIVERS_LICENSE`, and `PASSPORT` were returning `null` if the flag was false.
+    - Now, they will be included in the list like all other types, provided they are not hidden by the user in Customization settings.
+- **Scope**: This change is **isolated** to the Home screen mapping. It does not affect the "Add Item" flow, the global feature flag system, or any other part of the application.
 
 ---
 
 ## Verification Plan
 
 ### Automated Tests
-- Verify successful project build: `./gradlew :app:compileStandardDebugKotlin`.
+- Build the project: `./gradlew :app:compileStandardDebugKotlin`
 
 ### Manual Verification
-- **PDF**: Open a PDF, zoom in, and rotate the device. Verify the zoom level and position are preserved and no crash occurs.
-- **Customization**: Verify the entry in main Settings has the new icon and label. Verify all vault types are present in the customization list.
-- **Filtering**: Disable "Secure Note", verify it disappears from the Home screen.
-- **Home UI**: Verify "No Folder" section is absent even if ungrouped items exist.
+- **Home Screen**: Open the app and verify all 8 types (Login, Card, Identity, Secure Note, SSH Key, Bank Account, Passport, Driver License) appear in the "Types" section.
+- **Navigation**: Tap on "Bank Account" and verify it navigates to the correctly filtered listing.
+- **Isolation**: Open the "Add Item" dialog (FAB) and verify that it **still respects** the feature flag (i.e., new types should not appear there if the flag is disabled), confirming the change was isolated to the Home screen.

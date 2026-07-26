@@ -185,232 +185,25 @@ fun VaultContent(
             Spacer(modifier = Modifier.height(height = 8.dp))
         }
 
-        if (state.showLoginGroup) {
-            item(key = "logins_group") {
-                BitwardenGroupItem(
-                    startIcon = IconData.Local(
-                        iconRes = BitwardenDrawable.ic_globe,
-                        testTag = "LoginCipherIcon",
-                    ),
-                    label = stringResource(id = BitwardenString.type_login),
-                    supportingLabel = state.loginItemsCount.toString(),
-                    onClick = vaultHandlers.loginGroupClick,
-                    cardStyle = if (state.showCardGroup || state.showBankAccountGroup || state.showIdentityGroup || state.showLicenseGroup || state.showPassportGroup || state.showSecureNoteGroup || state.showSshKeyGroup) {
-                        CardStyle.Top(dividerPadding = 56.dp)
-                    } else {
-                        CardStyle.Full
-                    },
-                    modifier = Modifier
-                        .animateItem()
-                        .fillMaxWidth()
-                        .testTag("LoginFilter")
-                        .standardHorizontalMargin(),
-                )
-            }
-        }
-
-        if (state.showCardGroup) {
-            item(key = "cards_group") {
-                BitwardenGroupItem(
-                    startIcon = IconData.Local(
-                        iconRes = BitwardenDrawable.ic_payment_card,
-                        testTag = "CardCipherIcon",
-                    ),
-                    label = stringResource(id = BitwardenString.type_card),
-                    supportingLabel = state.cardItemsCount.toString(),
-                    onClick = vaultHandlers.cardGroupClick,
-                    cardStyle = if (!state.showLoginGroup) {
-                        if (state.showBankAccountGroup || state.showIdentityGroup || state.showLicenseGroup || state.showPassportGroup || state.showSecureNoteGroup || state.showSshKeyGroup) {
-                            CardStyle.Top(dividerPadding = 56.dp)
-                        } else {
-                            CardStyle.Full
-                        }
-                    } else if (state.showBankAccountGroup || state.showIdentityGroup || state.showLicenseGroup || state.showPassportGroup || state.showSecureNoteGroup || state.showSshKeyGroup) {
-                        CardStyle.Middle(dividerPadding = 56.dp)
-                    } else {
-                        CardStyle.Bottom
-                    },
-                    modifier = Modifier
-                        .animateItem()
-                        .fillMaxWidth()
-                        .testTag("CardFilter")
-                        .standardHorizontalMargin(),
-                )
-            }
-        }
-
-        if (state.showBankAccountGroup) {
-            item(key = "bank_accounts_group") {
-                BitwardenGroupItem(
-                    startIcon = IconData.Local(
-                        iconRes = BitwardenDrawable.ic_payment_card,
-                        testTag = "BankAccountCipherIcon",
-                    ),
-                    label = stringResource(id = BitwardenString.type_bank_account),
-                    supportingLabel = state.bankAccountItemsCount.toString(),
-                    onClick = vaultHandlers.bankAccountGroupClick,
-                    cardStyle = if (!state.showLoginGroup && !state.showCardGroup) {
-                        if (state.showIdentityGroup || state.showLicenseGroup || state.showPassportGroup || state.showSecureNoteGroup || state.showSshKeyGroup) {
-                            CardStyle.Top(dividerPadding = 56.dp)
-                        } else {
-                            CardStyle.Full
-                        }
-                    } else if (state.showIdentityGroup || state.showLicenseGroup || state.showPassportGroup || state.showSecureNoteGroup || state.showSshKeyGroup) {
-                        CardStyle.Middle(dividerPadding = 56.dp)
-                    } else {
-                        CardStyle.Bottom
-                    },
-                    modifier = Modifier
-                        .animateItem()
-                        .fillMaxWidth()
-                        .testTag("BankAccountFilter")
-                        .standardHorizontalMargin(),
-                )
-            }
-        }
-
-        if (state.showIdentityGroup) {
-            item(key = "identities_group") {
-                BitwardenGroupItem(
-                    startIcon = IconData.Local(
-                        iconRes = BitwardenDrawable.ic_id_card,
-                        testTag = "IdentityCipherIcon",
-                    ),
-                    label = stringResource(id = BitwardenString.type_identity),
-                    supportingLabel = state.identityItemsCount.toString(),
-                    onClick = vaultHandlers.identityGroupClick,
-                    cardStyle = if (!state.showLoginGroup && !state.showCardGroup && !state.showBankAccountGroup) {
-                        if (state.showLicenseGroup || state.showPassportGroup || state.showSecureNoteGroup || state.showSshKeyGroup) {
-                            CardStyle.Top(dividerPadding = 56.dp)
-                        } else {
-                            CardStyle.Full
-                        }
-                    } else if (state.showLicenseGroup || state.showPassportGroup || state.showSecureNoteGroup || state.showSshKeyGroup) {
-                        CardStyle.Middle(dividerPadding = 56.dp)
-                    } else {
-                        CardStyle.Bottom
-                    },
-                    modifier = Modifier
-                        .animateItem()
-                        .fillMaxWidth()
-                        .testTag("IdentityFilter")
-                        .standardHorizontalMargin(),
-                )
-            }
-        }
-
-        if (state.showLicenseGroup) {
-            item(key = "licenses_group") {
-                BitwardenGroupItem(
-                    startIcon = IconData.Local(
-                        iconRes = BitwardenDrawable.ic_id_card,
-                        testTag = "LicenseCipherIcon",
-                    ),
-                    label = stringResource(id = BitwardenString.type_license),
-                    supportingLabel = state.licenseItemsCount.toString(),
-                    onClick = vaultHandlers.licenseGroupClick,
-                    cardStyle = if (!state.showLoginGroup && !state.showCardGroup && !state.showBankAccountGroup && !state.showIdentityGroup) {
-                        if (state.showPassportGroup || state.showSecureNoteGroup || state.showSshKeyGroup) {
-                            CardStyle.Top(dividerPadding = 56.dp)
-                        } else {
-                            CardStyle.Full
-                        }
-                    } else if (state.showPassportGroup || state.showSecureNoteGroup || state.showSshKeyGroup) {
-                        CardStyle.Middle(dividerPadding = 56.dp)
-                    } else {
-                        CardStyle.Bottom
-                    },
-                    modifier = Modifier
-                        .animateItem()
-                        .fillMaxWidth()
-                        .testTag("LicenseFilter")
-                        .standardHorizontalMargin(),
-                )
-            }
-        }
-
-        if (state.showPassportGroup) {
-            item(key = "passports_group") {
-                BitwardenGroupItem(
-                    startIcon = IconData.Local(
-                        iconRes = BitwardenDrawable.ic_passport,
-                        testTag = "PassportCipherIcon",
-                    ),
-                    label = stringResource(id = BitwardenString.type_passport),
-                    supportingLabel = state.passportItemsCount.toString(),
-                    onClick = vaultHandlers.passportGroupClick,
-                    cardStyle = if (!state.showLoginGroup && !state.showCardGroup && !state.showBankAccountGroup && !state.showIdentityGroup && !state.showLicenseGroup) {
-                        if (state.showSecureNoteGroup || state.showSshKeyGroup) {
-                            CardStyle.Top(dividerPadding = 56.dp)
-                        } else {
-                            CardStyle.Full
-                        }
-                    } else if (state.showSecureNoteGroup || state.showSshKeyGroup) {
-                        CardStyle.Middle(dividerPadding = 56.dp)
-                    } else {
-                        CardStyle.Bottom
-                    },
-                    modifier = Modifier
-                        .animateItem()
-                        .fillMaxWidth()
-                        .testTag("PassportFilter")
-                        .standardHorizontalMargin(),
-                )
-            }
-        }
-
-        if (state.showSecureNoteGroup) {
-            item(key = "notes_group") {
-                BitwardenGroupItem(
-                    startIcon = IconData.Local(
-                        iconRes = BitwardenDrawable.ic_note,
-                        testTag = "SecureNoteCipherIcon",
-                    ),
-                    label = stringResource(id = BitwardenString.type_secure_note),
-                    supportingLabel = state.secureNoteItemsCount.toString(),
-                    onClick = vaultHandlers.secureNoteGroupClick,
-                    cardStyle = if (!state.showLoginGroup && !state.showCardGroup && !state.showBankAccountGroup && !state.showIdentityGroup && !state.showLicenseGroup && !state.showPassportGroup) {
-                        if (state.showSshKeyGroup) {
-                            CardStyle.Top(dividerPadding = 56.dp)
-                        } else {
-                            CardStyle.Full
-                        }
-                    } else if (state.showSshKeyGroup) {
-                        CardStyle.Middle(dividerPadding = 56.dp)
-                    } else {
-                        CardStyle.Bottom
-                    },
-                    modifier = Modifier
-                        .animateItem()
-                        .fillMaxWidth()
-                        .testTag("SecureNoteFilter")
-                        .standardHorizontalMargin(),
-                )
-            }
-        }
-
-        if (state.showSshKeyGroup) {
-            item(key = "ssh_keys_group") {
-                BitwardenGroupItem(
-                    startIcon = IconData.Local(
-                        iconRes = BitwardenDrawable.ic_ssh_key,
-                        testTag = "SshKeyCipherIcon",
-                    ),
-                    label = stringResource(id = BitwardenString.type_ssh_key),
-                    supportingLabel = state.sshKeyItemsCount.toString(),
-                    onClick = vaultHandlers.sshKeyGroupClick,
-                    cardStyle = if (!state.showLoginGroup && !state.showCardGroup && !state.showBankAccountGroup && !state.showIdentityGroup && !state.showLicenseGroup && !state.showPassportGroup && !state.showSecureNoteGroup) {
-                        CardStyle.Full
-                    } else {
-                        CardStyle.Bottom
-                    },
-                    modifier = Modifier
-                        .animateItem()
-                        .fillMaxWidth()
-                        .testTag("SshKeyFilter")
-                        .standardHorizontalMargin(),
-                )
-            }
+        itemsIndexed(
+            items = state.vaultTypeItems,
+            key = { _, typeItem -> "type_${typeItem.type.name}" }
+        ) { index, typeItem ->
+            BitwardenGroupItem(
+                startIcon = IconData.Local(
+                    iconRes = typeItem.iconRes,
+                    testTag = typeItem.testTag,
+                ),
+                label = typeItem.label(),
+                supportingLabel = typeItem.count.toString(),
+                onClick = { vaultHandlers.vaultTypeGroupClick(typeItem.type) },
+                cardStyle = state.vaultTypeItems.toListItemCardStyle(index = index, dividerPadding = 56.dp),
+                modifier = Modifier
+                    .animateItem()
+                    .fillMaxWidth()
+                    .testTag(typeItem.testTag)
+                    .standardHorizontalMargin(),
+            )
         }
 
         item(key = "types_spacer") {

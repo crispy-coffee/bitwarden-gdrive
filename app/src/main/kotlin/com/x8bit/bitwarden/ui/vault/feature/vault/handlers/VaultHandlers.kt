@@ -7,6 +7,7 @@ import com.x8bit.bitwarden.ui.vault.feature.vault.VaultAction
 import com.x8bit.bitwarden.ui.vault.feature.vault.VaultState
 import com.x8bit.bitwarden.ui.vault.feature.vault.VaultViewModel
 import com.x8bit.bitwarden.ui.vault.feature.vault.model.VaultFilterType
+import com.x8bit.bitwarden.ui.vault.model.VaultItemCipherType
 
 /**
  * A collection of handler functions for managing actions within the context of the vault screen.
@@ -25,14 +26,7 @@ data class VaultHandlers(
     val vaultItemClick: (VaultState.ViewState.VaultItem) -> Unit,
     val folderClick: (VaultState.ViewState.FolderItem) -> Unit,
     val collectionClick: (VaultState.ViewState.CollectionItem) -> Unit,
-    val loginGroupClick: () -> Unit,
-    val cardGroupClick: () -> Unit,
-    val identityGroupClick: () -> Unit,
-    val secureNoteGroupClick: () -> Unit,
-    val sshKeyGroupClick: () -> Unit,
-    val bankAccountGroupClick: () -> Unit,
-    val licenseGroupClick: () -> Unit,
-    val passportGroupClick: () -> Unit,
+    val vaultTypeGroupClick: (VaultItemCipherType) -> Unit,
     val archiveClick: () -> Unit,
     val trashClick: () -> Unit,
     val tryAgainClick: () -> Unit,
@@ -86,22 +80,7 @@ data class VaultHandlers(
                 vaultItemClick = { viewModel.trySendAction(VaultAction.VaultItemClick(it)) },
                 folderClick = { viewModel.trySendAction(VaultAction.FolderClick(it)) },
                 collectionClick = { viewModel.trySendAction(VaultAction.CollectionClick(it)) },
-                loginGroupClick = { viewModel.trySendAction(VaultAction.LoginGroupClick) },
-                cardGroupClick = { viewModel.trySendAction(VaultAction.CardGroupClick) },
-                identityGroupClick = { viewModel.trySendAction(VaultAction.IdentityGroupClick) },
-                secureNoteGroupClick = {
-                    viewModel.trySendAction(VaultAction.SecureNoteGroupClick)
-                },
-                sshKeyGroupClick = { viewModel.trySendAction(VaultAction.SshKeyGroupClick) },
-                bankAccountGroupClick = {
-                    viewModel.trySendAction(VaultAction.BankAccountGroupClick)
-                },
-                licenseGroupClick = {
-                    viewModel.trySendAction(VaultAction.LicenseGroupClick)
-                },
-                passportGroupClick = {
-                    viewModel.trySendAction(VaultAction.PassportGroupClick)
-                },
+                vaultTypeGroupClick = { viewModel.trySendAction(VaultAction.VaultTypeGroupClick(it)) },
                 archiveClick = { viewModel.trySendAction(VaultAction.ArchiveClick) },
                 trashClick = { viewModel.trySendAction(VaultAction.TrashClick) },
                 tryAgainClick = { viewModel.trySendAction(VaultAction.TryAgainClick) },
