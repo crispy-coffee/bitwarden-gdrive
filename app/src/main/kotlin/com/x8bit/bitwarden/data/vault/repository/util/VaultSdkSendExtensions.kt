@@ -43,7 +43,7 @@ fun Send.toEncryptedNetworkSend(fileLength: Long? = null): SendJsonRequest =
 private fun SendFile.toNetworkSendFile(): SyncResponseJson.Send.File =
     SyncResponseJson.Send.File(
         fileName = fileName,
-        size = size?.toInt(),
+        size = size?.toLong(),
         sizeName = sizeName,
         id = id,
     )

@@ -65,9 +65,9 @@ fun VaultAddEditState.ViewState.Content.toCipherView(
         login = type.toLoginView(common = common, clock = clock),
         card = type.toCardView(),
         sshKey = type.toSshKeyView(),
-        bankAccount = type.toBankAccountView(),
-        driversLicense = type.toDriversLicense(),
-        passport = type.toPassport(),
+        bankAccount = null,
+        driversLicense = null,
+        passport = null,
 
         // Fields we always grab from the UI
         name = common.name,
@@ -87,9 +87,7 @@ private fun VaultAddEditState.ViewState.Content.ItemType.toCipherType(): CipherT
         is VaultAddEditState.ViewState.Content.ItemType.Login -> CipherType.LOGIN
         is VaultAddEditState.ViewState.Content.ItemType.SecureNotes -> CipherType.SECURE_NOTE
         is VaultAddEditState.ViewState.Content.ItemType.SshKey -> CipherType.SSH_KEY
-        is VaultAddEditState.ViewState.Content.ItemType.BankAccount -> CipherType.BANK_ACCOUNT
-        is VaultAddEditState.ViewState.Content.ItemType.Passport -> CipherType.PASSPORT
-        is VaultAddEditState.ViewState.Content.ItemType.License -> CipherType.DRIVERS_LICENSE
+        else -> CipherType.LOGIN
     }
 
 private fun VaultAddEditState.ViewState.Content.ItemType.toSshKeyView(): SshKeyView? =
@@ -131,8 +129,8 @@ private fun VaultAddEditState.ViewState.Content.ItemType.toDriversLicense(): Dri
             issuingCountry = it.issuingCountry.orNullIfBlank(),
             issuingState = it.issuingState.orNullIfBlank(),
             issueDate = it.issueDate?.toString(),
-            issuingAuthority = it.issuingAuthority.orNullIfBlank(),
             expirationDate = it.expirationDate?.toString(),
+            issuingAuthority = it.issuingAuthority.orNullIfBlank(),
             licenseClass = it.licenseClass.orNullIfBlank(),
         )
     }
@@ -143,16 +141,16 @@ private fun VaultAddEditState.ViewState.Content.ItemType.toPassport(): PassportV
             surname = it.surname.orNullIfBlank(),
             givenName = it.givenName.orNullIfBlank(),
             dateOfBirth = it.dateOfBirth?.toString(),
-            birthPlace = it.birthPlace.orNullIfBlank(),
             sex = it.sex.orNullIfBlank(),
+            birthPlace = it.birthPlace.orNullIfBlank(),
             nationality = it.nationality.orNullIfBlank(),
+            issuingCountry = it.issuingCountry.orNullIfBlank(),
             passportNumber = it.passportNumber.orNullIfBlank(),
             passportType = it.passportType.orNullIfBlank(),
-            issuingCountry = it.issuingCountry.orNullIfBlank(),
+            nationalIdentificationNumber = it.nationalIdentificationNumber.orNullIfBlank(),
             issuingAuthority = it.issuingAuthority.orNullIfBlank(),
             issueDate = it.issueDate?.toString(),
             expirationDate = it.expirationDate?.toString(),
-            nationalIdentificationNumber = it.nationalIdentificationNumber.orNullIfBlank(),
         )
     }
 
@@ -188,8 +186,8 @@ private fun VaultAddEditState.ViewState.Content.ItemType.toIdentityView(): Ident
                 }
                 ?.name,
             firstName = it.firstName.orNullIfBlank(),
-            lastName = it.lastName.orNullIfBlank(),
             middleName = it.middleName.orNullIfBlank(),
+            lastName = it.lastName.orNullIfBlank(),
             address1 = it.address1.orNullIfBlank(),
             address2 = it.address2.orNullIfBlank(),
             address3 = it.address3.orNullIfBlank(),

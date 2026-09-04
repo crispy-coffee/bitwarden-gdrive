@@ -135,7 +135,7 @@ fun createMockIdentity(
 fun createMockAttachment(
     number: Int,
     fileName: String? = "mockFileName-$number",
-    size: Int = 1,
+    size: Long = 1,
     sizeName: String? = "mockSizeName-$number",
     id: String? = "mockId-$number",
     url: String? = "mockUrl-$number",

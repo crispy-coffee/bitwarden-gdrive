@@ -29,70 +29,70 @@ import java.time.Instant
 @Serializable
 data class CipherJsonRequest(
     @SerialName("notes")
-    val notes: String?,
+    val notes: String? = null,
 
     @SerialName("attachments2")
-    val attachments: Map<String, AttachmentJsonRequest>?,
+    val attachments: Map<String, AttachmentJsonRequest>? = null,
 
     @SerialName("reprompt")
     val reprompt: CipherRepromptTypeJson,
 
     @SerialName("passwordHistory")
-    val passwordHistory: List<SyncResponseJson.Cipher.PasswordHistory>?,
+    val passwordHistory: List<SyncResponseJson.Cipher.PasswordHistory>? = null,
 
     @SerialName("lastKnownRevisionDate")
     @Contextual
-    val lastKnownRevisionDate: Instant?,
+    val lastKnownRevisionDate: Instant? = null,
 
     @SerialName("type")
     val type: CipherTypeJson,
 
     @SerialName("login")
-    val login: SyncResponseJson.Cipher.Login?,
+    val login: SyncResponseJson.Cipher.Login? = null,
 
     @SerialName("secureNote")
-    val secureNote: SyncResponseJson.Cipher.SecureNote?,
+    val secureNote: SyncResponseJson.Cipher.SecureNote? = null,
 
     @SerialName("sshKey")
-    val sshKey: SyncResponseJson.Cipher.SshKey?,
+    val sshKey: SyncResponseJson.Cipher.SshKey? = null,
 
     @SerialName("bankAccount")
-    val bankAccount: SyncResponseJson.Cipher.BankAccount?,
+    val bankAccount: SyncResponseJson.Cipher.BankAccount? = null,
 
     @SerialName("driversLicense")
-    val driversLicense: SyncResponseJson.Cipher.DriversLicense?,
+    val driversLicense: SyncResponseJson.Cipher.DriversLicense? = null,
 
     @SerialName("passport")
-    val passport: SyncResponseJson.Cipher.Passport?,
+    val passport: SyncResponseJson.Cipher.Passport? = null,
 
     @SerialName("folderId")
-    val folderId: String?,
+    val folderId: String? = null,
 
     @SerialName("organizationId")
-    val organizationId: String?,
+    val organizationId: String? = null,
 
     @SerialName("identity")
-    val identity: SyncResponseJson.Cipher.Identity?,
+    val identity: SyncResponseJson.Cipher.Identity? = null,
 
     @SerialName("name")
-    val name: String?,
+    val name: String? = null,
 
     @SerialName("fields")
-    val fields: List<SyncResponseJson.Cipher.Field>?,
+    val fields: List<SyncResponseJson.Cipher.Field>? = null,
 
     @SerialName("favorite")
     val isFavorite: Boolean,
 
     @SerialName("card")
-    val card: SyncResponseJson.Cipher.Card?,
+    val card: SyncResponseJson.Cipher.Card? = null,
 
     @SerialName("key")
-    val key: String?,
+    val key: String? = null,
 
     @SerialName("archivedDate")
     @Contextual
-    val archivedDate: Instant?,
+    val archivedDate: Instant? = null,
 
     @SerialName("encryptedFor")
-    val encryptedFor: String?,
+    val encryptedFor: String? = null,
 )

@@ -100,7 +100,11 @@ fun CustomizationScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            val types = VaultItemCipherType.entries
+            val types = VaultItemCipherType.entries.filter {
+                it != VaultItemCipherType.BANK_ACCOUNT &&
+                    it != VaultItemCipherType.DRIVERS_LICENSE &&
+                    it != VaultItemCipherType.PASSPORT
+            }
             types.forEachIndexed { index, type ->
                 val label = when(type) {
                     VaultItemCipherType.LOGIN -> stringResource(BitwardenString.type_login)
@@ -108,21 +112,21 @@ fun CustomizationScreen(
                     VaultItemCipherType.IDENTITY -> stringResource(BitwardenString.type_identity)
                     VaultItemCipherType.SECURE_NOTE -> stringResource(BitwardenString.type_secure_note)
                     VaultItemCipherType.SSH_KEY -> stringResource(BitwardenString.type_ssh_key)
-                    VaultItemCipherType.BANK_ACCOUNT -> stringResource(BitwardenString.type_bank_account)
-                    VaultItemCipherType.DRIVERS_LICENSE -> stringResource(BitwardenString.type_license)
-                    VaultItemCipherType.PASSPORT -> stringResource(BitwardenString.type_passport)
+                    else -> ""
                 }
                 val cardStyle = if (index == 0) CardStyle.Top(dividerPadding = 0.dp)
                                 else if (index == types.lastIndex) CardStyle.Bottom
                                 else CardStyle.Middle(dividerPadding = 0.dp)
 
-                BitwardenSwitch(
-                    label = label,
-                    isChecked = !state.hiddenTypes.contains(type.name),
-                    onCheckedChange = { viewModel.trySendAction(CustomizationAction.ToggleType(type.name, it)) },
-                    cardStyle = cardStyle,
-                    modifier = Modifier.standardHorizontalMargin()
-                )
+                if (label.isNotEmpty()) {
+                    BitwardenSwitch(
+                        label = label,
+                        isChecked = !state.hiddenTypes.contains(type.name),
+                        onCheckedChange = { viewModel.trySendAction(CustomizationAction.ToggleType(type.name, it)) },
+                        cardStyle = cardStyle,
+                        modifier = Modifier.standardHorizontalMargin()
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

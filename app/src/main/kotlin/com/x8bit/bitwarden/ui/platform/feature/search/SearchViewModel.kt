@@ -24,6 +24,7 @@ import com.bitwarden.vault.CipherType
 import com.bitwarden.vault.CipherView
 import com.bitwarden.vault.LoginUriView
 import com.x8bit.bitwarden.data.auth.repository.AuthRepository
+import com.x8bit.bitwarden.data.auth.repository.model.UserState
 import com.x8bit.bitwarden.data.auth.repository.model.ValidatePasswordResult
 import com.x8bit.bitwarden.data.autofill.accessibility.manager.AccessibilitySelectionManager
 import com.x8bit.bitwarden.data.autofill.manager.AutofillSelectionManager
@@ -137,7 +138,7 @@ class SearchViewModel @Inject constructor(
                 autofillSelectionData = specialCircumstance?.toAutofillSelectionDataOrNull(),
                 totpData = specialCircumstance?.toTotpDataOrNull(),
                 hasMasterPassword = userState.activeAccount.hasMasterPassword,
-                isPremium = userState.activeAccount.isPremium,
+                isPremium = true,
                 restrictItemTypesPolicyOrgIds = persistentListOf(),
             )
         },
@@ -159,6 +160,12 @@ class SearchViewModel @Inject constructor(
             .getActivePoliciesFlow(type = PolicyType.RESTRICTED_ITEM_TYPES)
             .map { policies -> policies.map { it.organizationId } }
             .map { SearchAction.Internal.RestrictItemTypesPolicyUpdateReceive(it) }
+            .onEach(::sendAction)
+            .launchIn(viewModelScope)
+
+        authRepo
+            .userStateFlow
+            .map { SearchAction.Internal.UserStateUpdateReceive(it) }
             .onEach(::sendAction)
             .launchIn(viewModelScope)
 
@@ -704,7 +711,8 @@ class SearchViewModel @Inject constructor(
                 handleRemovePasswordSendResultReceive(action)
             }
 
-            is SearchAction.Internal.SnackbarDataReceived -> handleSnackbarDataReceived(action)
+            is SearchAction.Internal.UserStateUpdateReceive -> handleUserStateUpdateReceive(action)
+        is SearchAction.Internal.SnackbarDataReceived -> handleSnackbarDataReceived(action)
 
             is SearchAction.Internal.UpdateCipherResultReceive -> {
                 handleUpdateCipherResultReceive(action)
@@ -853,6 +861,17 @@ class SearchViewModel @Inject constructor(
                 mutableStateFlow.update { it.copy(dialogState = null) }
                 sendEvent(SearchEvent.ShowSnackbar(BitwardenString.password_removed.asText()))
             }
+        }
+    }
+
+    private fun handleUserStateUpdateReceive(action: SearchAction.Internal.UserStateUpdateReceive) {
+        val userState = action.userState ?: return
+
+        mutableStateFlow.update {
+            it.copy(
+                isPremium = true,
+                hasMasterPassword = userState.activeAccount.hasMasterPassword,
+            )
         }
     }
 
@@ -1382,34 +1401,6 @@ sealed class SearchTypeData : Parcelable {
         }
 
         /**
-         * Indicates that we should be searching only bank account ciphers.
-         */
-        data object BankAccounts : Vault() {
-            override val title: Text
-                get() = BitwardenString.search_x.asText(BitwardenString.bank_accounts.asText())
-        }
-
-        /**
-         * Indicates that we should be searching only license ciphers.
-         */
-        data object Licenses : Vault() {
-            override val title: Text
-                get() = BitwardenString
-                    .search_x
-                    .asText(BitwardenString.licenses.asText())
-        }
-
-        /**
-         * Indicates that we should be searching only passport ciphers.
-         */
-        data object Passports : Vault() {
-            override val title: Text
-                get() = BitwardenString
-                    .search_x
-                    .asText(BitwardenString.passports.asText())
-        }
-
-        /**
          * Indicates that we should be searching only ciphers in the given collection.
          */
         data class Collection(
@@ -1583,6 +1574,13 @@ sealed class SearchAction {
         /**
          * Indicates that snackbar data has been received.
          */
+        /**
+         * Indicates a change in user state has been received.
+         */
+        data class UserStateUpdateReceive(
+            val userState: UserState?,
+        ) : Internal()
+
         data class SnackbarDataReceived(
             val data: BitwardenSnackbarData,
         ) : Internal()

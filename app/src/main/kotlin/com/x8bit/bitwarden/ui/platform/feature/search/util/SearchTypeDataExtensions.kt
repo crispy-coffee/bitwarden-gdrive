@@ -71,10 +71,15 @@ fun SearchTypeData.updateWithAdditionalDataIfNecessary(
         SearchTypeData.Vault.Trash -> this
         SearchTypeData.Vault.VerificationCodes -> this
         SearchTypeData.Vault.SshKeys -> this
-        SearchTypeData.Vault.BankAccounts -> this
-        SearchTypeData.Vault.Licenses -> this
-        SearchTypeData.Vault.Passports -> this
     }
+
+/**
+ * Filter for supported vault item types.
+ */
+private fun CipherListView.isSupportedType(): Boolean =
+    type !is CipherListViewType.BankAccount &&
+        type !is CipherListViewType.DriversLicense &&
+        type !is CipherListViewType.Passport
 
 /**
  * The semantic test tag to use for the search item.
@@ -97,6 +102,7 @@ fun List<CipherListView>.filterAndOrganize(
         emptyList()
     } else {
         this
+            .filter { it.isSupportedType() }
             .filter { it.filterBySearchType(searchTypeData) }
             .groupBy { it.matchedSearch(searchTerm) }
             .flatMap { (priority, sends) ->
@@ -128,18 +134,6 @@ private fun CipherListView.filterBySearchType(
         is SearchTypeData.Vault.Logins -> type is CipherListViewType.Login && isActive
         is SearchTypeData.Vault.SecureNotes -> type is CipherListViewType.SecureNote && isActive
         is SearchTypeData.Vault.SshKeys -> type is CipherListViewType.SshKey && isActive
-        is SearchTypeData.Vault.BankAccounts -> {
-            type is CipherListViewType.BankAccount && isActive
-        }
-
-        is SearchTypeData.Vault.Licenses -> {
-            type is CipherListViewType.DriversLicense && isActive
-        }
-
-        is SearchTypeData.Vault.Passports -> {
-            type is CipherListViewType.Passport && isActive
-        }
-
         is SearchTypeData.Vault.VerificationCodes -> login?.totp != null && isActive
         is SearchTypeData.Vault.Trash -> deletedDate != null
     }

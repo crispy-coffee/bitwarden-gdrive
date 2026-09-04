@@ -28,6 +28,7 @@ import com.x8bit.bitwarden.ui.vault.model.findVaultCardBrandWithNameOrNull
 import com.x8bit.bitwarden.ui.vault.util.toSdkCipherType
 import com.x8bit.bitwarden.ui.vault.util.toVaultItemCipherType
 import kotlinx.collections.immutable.persistentListOf
+import timber.log.Timber
 
 private const val ANDROID_URI = "androidapp://"
 private const val IOS_URI = "iosapp://"
@@ -63,6 +64,11 @@ fun VaultData.toViewState(
                         cipher.toFailureCipherListView()
                     },
             )
+            .filter {
+                it.type !is CipherListViewType.BankAccount &&
+                    it.type !is CipherListViewType.Passport &&
+                    it.type !is CipherListViewType.DriversLicense
+            }
             .applyFilters(
                 vaultFilterType = vaultFilterType,
                 restrictItemTypesPolicyOrgIds = restrictItemTypesPolicyOrgIds,
@@ -76,6 +82,11 @@ fun VaultData.toViewState(
 
     val activeDecryptedCipherViews = decryptCipherListResult
         .successes
+        .filter {
+            it.type !is CipherListViewType.BankAccount &&
+                it.type !is CipherListViewType.Passport &&
+                it.type !is CipherListViewType.DriversLicense
+        }
         .applyFilters(
             vaultFilterType = vaultFilterType,
             restrictItemTypesPolicyOrgIds = restrictItemTypesPolicyOrgIds,
@@ -88,6 +99,11 @@ fun VaultData.toViewState(
         .failures
         .map { cipher ->
             cipher.toFailureCipherListView()
+        }
+        .filter {
+            it.type !is CipherListViewType.BankAccount &&
+                it.type !is CipherListViewType.Passport &&
+                it.type !is CipherListViewType.DriversLicense
         }
         .applyFilters(
             vaultFilterType = vaultFilterType,
@@ -118,6 +134,10 @@ fun VaultData.toViewState(
 
         val vaultTypeItems = VaultItemCipherType.entries.mapNotNull { type ->
             if (type.name in hiddenVaultItemTypes) return@mapNotNull null
+            if (type == VaultItemCipherType.BANK_ACCOUNT ||
+                type == VaultItemCipherType.DRIVERS_LICENSE ||
+                type == VaultItemCipherType.PASSPORT
+            ) return@mapNotNull null
 
             val count = activeCipherViews.count { it.type.toSdkCipherType().toVaultItemCipherType() == type }
             val label = when (type) {
@@ -126,9 +146,7 @@ fun VaultData.toViewState(
                 VaultItemCipherType.IDENTITY -> BitwardenString.type_identity
                 VaultItemCipherType.SECURE_NOTE -> BitwardenString.type_secure_note
                 VaultItemCipherType.SSH_KEY -> BitwardenString.type_ssh_key
-                VaultItemCipherType.BANK_ACCOUNT -> BitwardenString.type_bank_account
-                VaultItemCipherType.DRIVERS_LICENSE -> BitwardenString.type_license
-                VaultItemCipherType.PASSPORT -> BitwardenString.type_passport
+                else -> BitwardenString.vault
             }.asText()
 
             val iconRes = when (type) {
@@ -137,9 +155,7 @@ fun VaultData.toViewState(
                 VaultItemCipherType.IDENTITY -> BitwardenDrawable.ic_id_card
                 VaultItemCipherType.SECURE_NOTE -> BitwardenDrawable.ic_note
                 VaultItemCipherType.SSH_KEY -> BitwardenDrawable.ic_ssh_key
-                VaultItemCipherType.BANK_ACCOUNT -> BitwardenDrawable.ic_payment_card
-                VaultItemCipherType.DRIVERS_LICENSE -> BitwardenDrawable.ic_id_card
-                VaultItemCipherType.PASSPORT -> BitwardenDrawable.ic_passport
+                else -> BitwardenDrawable.ic_vault
             }
 
             val testTag = when (type) {
@@ -148,9 +164,7 @@ fun VaultData.toViewState(
                 VaultItemCipherType.IDENTITY -> "IdentityFilter"
                 VaultItemCipherType.SECURE_NOTE -> "SecureNoteFilter"
                 VaultItemCipherType.SSH_KEY -> "SshKeyFilter"
-                VaultItemCipherType.BANK_ACCOUNT -> "BankAccountFilter"
-                VaultItemCipherType.DRIVERS_LICENSE -> "LicenseFilter"
-                VaultItemCipherType.PASSPORT -> "PassportFilter"
+                else -> ""
             }
 
             // For cards, we also check the policy
@@ -372,44 +386,7 @@ private fun CipherListView.toVaultItemOrNull(
             hasDecryptionError = hasDecryptionError,
         )
 
-        is CipherListViewType.BankAccount -> VaultState.ViewState.VaultItem.BankAccount(
-            id = id,
-            name = name.asText(),
-            overflowOptions = toOverflowActions(
-                hasMasterPassword = hasMasterPassword,
-                isPremiumUser = isPremiumUser,
-            ),
-            extraIconList = toLabelIcons(),
-            shouldShowMasterPasswordReprompt = hasMasterPassword &&
-                reprompt == CipherRepromptType.PASSWORD,
-            hasDecryptionError = hasDecryptionError,
-        )
-
-        CipherListViewType.DriversLicense -> VaultState.ViewState.VaultItem.License(
-            id = id,
-            name = name.asText(),
-            overflowOptions = toOverflowActions(
-                hasMasterPassword = hasMasterPassword,
-                isPremiumUser = isPremiumUser,
-            ),
-            extraIconList = toLabelIcons(),
-            shouldShowMasterPasswordReprompt = hasMasterPassword &&
-                reprompt == CipherRepromptType.PASSWORD,
-            hasDecryptionError = hasDecryptionError,
-        )
-
-        CipherListViewType.Passport -> VaultState.ViewState.VaultItem.Passport(
-            id = id,
-            name = name.asText(),
-            overflowOptions = toOverflowActions(
-                hasMasterPassword = hasMasterPassword,
-                isPremiumUser = isPremiumUser,
-            ),
-            extraIconList = toLabelIcons(),
-            shouldShowMasterPasswordReprompt = hasMasterPassword &&
-                reprompt == CipherRepromptType.PASSWORD,
-            hasDecryptionError = hasDecryptionError,
-        )
+        else -> null
     }
 }
 
@@ -502,6 +479,11 @@ private fun List<CipherListView>.applyFilters(
     excludeArchived: Boolean,
     excludeDeleted: Boolean,
 ): List<CipherListView> = this
+    .filter {
+        it.type !is CipherListViewType.BankAccount &&
+            it.type !is CipherListViewType.Passport &&
+            it.type !is CipherListViewType.DriversLicense
+    }
     .let {
         if (excludeArchived) {
             it.filter { cipher -> cipher.archivedDate == null }

@@ -202,6 +202,7 @@ class VaultViewModel @Inject constructor(
 
         vaultRepository
             .vaultDataStateFlow
+            .onEach { Timber.d("VaultViewModel: Received vault data state: %s", it::class.simpleName) }
             .map {
                 vaultRepository.getValidTotpCipherIds(
                     isPremium = state.isPremium,
@@ -396,9 +397,7 @@ class VaultViewModel @Inject constructor(
             VaultItemCipherType.IDENTITY -> VaultItemListingType.Identity
             VaultItemCipherType.SECURE_NOTE -> VaultItemListingType.SecureNote
             VaultItemCipherType.SSH_KEY -> VaultItemListingType.SshKey
-            VaultItemCipherType.BANK_ACCOUNT -> VaultItemListingType.BankAccount
-            VaultItemCipherType.DRIVERS_LICENSE -> VaultItemListingType.License
-            VaultItemCipherType.PASSPORT -> VaultItemListingType.Passport
+            else -> VaultItemListingType.Login
         }
         sendEvent(VaultEvent.NavigateToItemListing(listingType))
     }
@@ -509,16 +508,12 @@ class VaultViewModel @Inject constructor(
     }
 
     private fun handleSelectAddItemType() {
-        val isNewItemTypesEnabled = state.isNewItemTypesEnabled
         // If policy is enable for any organization, exclude the card option
         val excludedOptions = persistentListOfNotNull(
             CreateVaultItemType.SSH_KEY,
             CreateVaultItemType.CARD.takeUnless {
                 state.restrictItemTypesPolicyOrgIds.isEmpty()
             },
-            CreateVaultItemType.BANK_ACCOUNT.takeUnless { isNewItemTypesEnabled },
-            CreateVaultItemType.LICENSE.takeUnless { isNewItemTypesEnabled },
-            CreateVaultItemType.PASSPORT.takeUnless { isNewItemTypesEnabled },
         )
 
         mutableStateFlow.update {
@@ -571,9 +566,6 @@ class VaultViewModel @Inject constructor(
             CreateVaultItemType.IDENTITY,
             CreateVaultItemType.SECURE_NOTE,
             CreateVaultItemType.SSH_KEY,
-            CreateVaultItemType.BANK_ACCOUNT,
-            CreateVaultItemType.LICENSE,
-            CreateVaultItemType.PASSPORT,
                 -> {
                 vaultItemType
                     .toVaultItemCipherTypeOrNull()

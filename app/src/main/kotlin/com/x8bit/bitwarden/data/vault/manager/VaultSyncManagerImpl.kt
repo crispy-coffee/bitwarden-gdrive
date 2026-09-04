@@ -7,6 +7,7 @@ import com.bitwarden.core.data.repository.model.DataState
 import com.bitwarden.core.data.repository.util.combineDataStates
 import com.bitwarden.core.data.repository.util.map
 import com.bitwarden.core.data.repository.util.updateToPendingOrLoading
+import com.bitwarden.network.model.CipherTypeJson
 import com.bitwarden.network.model.OrganizationStatusType
 import com.bitwarden.network.model.SyncResponseJson
 import com.bitwarden.network.service.SyncService
@@ -45,6 +46,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -52,7 +55,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
@@ -61,8 +66,10 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.time.Clock
 import java.time.temporal.ChronoUnit
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * A "stop timeout delay" in milliseconds used to let a shared coroutine continue to run for the
@@ -307,6 +314,7 @@ class VaultSyncManagerImpl(
 
         return syncService.sync().fold(
             onSuccess = { syncResponse ->
+                Timber.d("VaultSyncManager: Sync successful, received %d ciphers", syncResponse.ciphers?.size ?: 0)
                 userStateManager.userStateTransaction {
                     val localSecurityStamp = authDiskSource.userState?.activeAccount?.profile?.stamp
                     val serverSecurityStamp = syncResponse.profile.securityStamp
@@ -350,6 +358,7 @@ class VaultSyncManagerImpl(
                 }
             },
             onFailure = {
+                Timber.e(it, "VaultSyncManager: Sync failed")
                 updateVaultStateFlowsToError(throwable = it)
                 SyncVaultDataResult.Error(throwable = it)
             },
@@ -412,18 +421,30 @@ class VaultSyncManagerImpl(
             .onStart { mutableDecryptCipherListResultFlow.updateToPendingOrLoading() }
             .map {
                 vaultLockManager.waitUntilUnlocked(userId = userId)
+                android.util.Log.d("ISOLATION", "VaultSyncManager: observeVaultDiskCiphers starting decryption for user $userId")
+                val sdkCipherList = try {
+                    it.toEncryptedSdkCipherList()
+                } catch (e: Exception) {
+                    android.util.Log.e("ISOLATION", "VaultSyncManager: Failed to convert network ciphers to SDK ciphers", e)
+                    return@map DataState.Error(error = e)
+                }
+
                 vaultSdkSource
                     .decryptCipherListWithFailures(
                         userId = userId,
-                        cipherList = it.toEncryptedSdkCipherList(),
+                        cipherList = sdkCipherList,
                     )
                     .fold(
                         onSuccess = { result ->
+                            android.util.Log.d("ISOLATION", "VaultSyncManager: Successfully decrypted ${result.successes.size} ciphers")
                             DataState.Loaded(
                                 result.copy(successes = result.successes.sortAlphabetically()),
                             )
                         },
-                        onFailure = { throwable -> DataState.Error(error = throwable) },
+                        onFailure = { throwable ->
+                            android.util.Log.e("ISOLATION", "VaultSyncManager: SDK decryption failed", throwable)
+                            DataState.Error(error = throwable)
+                        },
                     )
             }
             .map {

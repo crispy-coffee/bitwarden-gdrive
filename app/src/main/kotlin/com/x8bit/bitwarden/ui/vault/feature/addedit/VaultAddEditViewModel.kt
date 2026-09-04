@@ -2757,9 +2757,7 @@ data class VaultAddEditState(
                 VaultItemCipherType.IDENTITY -> BitwardenString.add_identity.asText()
                 VaultItemCipherType.SECURE_NOTE -> BitwardenString.add_note.asText()
                 VaultItemCipherType.SSH_KEY -> BitwardenString.add_ssh_key.asText()
-                VaultItemCipherType.BANK_ACCOUNT -> BitwardenString.add_bank_account.asText()
-                VaultItemCipherType.DRIVERS_LICENSE -> BitwardenString.add_license.asText()
-                VaultItemCipherType.PASSPORT -> BitwardenString.add_passport.asText()
+                else -> BitwardenString.add_item.asText()
             }
 
             is VaultAddEditType.EditItem -> when (cipherType) {
@@ -2768,9 +2766,7 @@ data class VaultAddEditState(
                 VaultItemCipherType.IDENTITY -> BitwardenString.edit_identity.asText()
                 VaultItemCipherType.SECURE_NOTE -> BitwardenString.edit_note.asText()
                 VaultItemCipherType.SSH_KEY -> BitwardenString.edit_ssh_key.asText()
-                VaultItemCipherType.BANK_ACCOUNT -> BitwardenString.edit_bank_account.asText()
-                VaultItemCipherType.DRIVERS_LICENSE -> BitwardenString.edit_license.asText()
-                VaultItemCipherType.PASSPORT -> BitwardenString.edit_passport.asText()
+                else -> BitwardenString.edit_item.asText()
             }
         }
 
@@ -2862,9 +2858,6 @@ data class VaultAddEditState(
         IDENTITY(BitwardenString.type_identity),
         SECURE_NOTES(BitwardenString.type_secure_note),
         SSH_KEYS(BitwardenString.type_ssh_key),
-        BANK_ACCOUNT(BitwardenString.type_bank_account),
-        LICENSE(BitwardenString.type_license),
-        PASSPORT(BitwardenString.type_passport),
     }
 
     /**
@@ -3177,7 +3170,7 @@ data class VaultAddEditState(
                     val bankContactPhone: String = "",
                 ) : ItemType() {
                     override val itemTypeOption: ItemTypeOption
-                        get() = ItemTypeOption.BANK_ACCOUNT
+                        get() = ItemTypeOption.LOGIN
 
                     override val vaultLinkedFieldTypes: ImmutableList<VaultLinkedFieldType>
                         get() = persistentListOf()
@@ -3201,7 +3194,7 @@ data class VaultAddEditState(
                     val licenseClass: String = "",
                 ) : ItemType() {
                     override val itemTypeOption: ItemTypeOption
-                        get() = ItemTypeOption.LICENSE
+                        get() = ItemTypeOption.LOGIN
 
                     override val vaultLinkedFieldTypes: ImmutableList<VaultLinkedFieldType>
                         get() = persistentListOf()
@@ -3227,7 +3220,7 @@ data class VaultAddEditState(
                     val expirationDate: LocalDate? = null,
                 ) : ItemType() {
                     override val itemTypeOption: ItemTypeOption
-                        get() = ItemTypeOption.PASSPORT
+                        get() = ItemTypeOption.LOGIN
 
                     override val vaultLinkedFieldTypes: ImmutableList<VaultLinkedFieldType>
                         get() = persistentListOf()

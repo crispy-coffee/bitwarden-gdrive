@@ -716,9 +716,6 @@ class VaultItemListingViewModel @Inject constructor(
             CreateVaultItemType.IDENTITY,
             CreateVaultItemType.SECURE_NOTE,
             CreateVaultItemType.SSH_KEY,
-            CreateVaultItemType.BANK_ACCOUNT,
-            CreateVaultItemType.LICENSE,
-            CreateVaultItemType.PASSPORT,
                 -> {
                 vaultItemType
                     .toVaultItemCipherTypeOrNull()
@@ -855,15 +852,10 @@ class VaultItemListingViewModel @Inject constructor(
     }
 
     private fun createVaultItemTypeSelectionExcludedOptions(): ImmutableList<CreateVaultItemType> {
-        val isNewItemTypesEnabled = featureFlagManager
-            .getFeatureFlag(FlagKey.NewItemTypes)
         return persistentListOfNotNull(
             CreateVaultItemType.CARD.takeIf { state.restrictItemTypesPolicyOrgIds.isNotEmpty() },
             CreateVaultItemType.FOLDER,
             CreateVaultItemType.SSH_KEY,
-            CreateVaultItemType.BANK_ACCOUNT.takeUnless { isNewItemTypesEnabled },
-            CreateVaultItemType.LICENSE.takeUnless { isNewItemTypesEnabled },
-            CreateVaultItemType.PASSPORT.takeUnless { isNewItemTypesEnabled },
         )
     }
 

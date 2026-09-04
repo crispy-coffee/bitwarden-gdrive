@@ -27,10 +27,10 @@ private const val DEFAULT_FIDO_2_KEY_CURVE = "P-256"
 @Serializable
 data class SyncResponseJson(
     @SerialName("folders")
-    val folders: List<Folder>?,
+    val folders: List<Folder>? = null,
 
     @SerialName("collections")
-    val collections: List<Collection>?,
+    val collections: List<Collection>? = null,
 
     @SerialName("profile")
     @JsonNames("Profile")
@@ -38,25 +38,25 @@ data class SyncResponseJson(
 
     @Contextual
     @SerialName("ciphers")
-    val ciphers: List<Cipher>?,
+    val ciphers: List<Cipher>? = null,
 
     @Contextual
     @SerialName("policies")
-    private val legacyPolicies: List<Policy>?,
+    private val legacyPolicies: List<Policy>? = null,
 
     @Contextual
     @SerialName("policiesNew")
-    private val newPolicies: List<Policy>?,
+    private val newPolicies: List<Policy>? = null,
 
     @SerialName("domains")
     @JsonNames("Domains")
-    val domains: Domains?,
+    val domains: Domains? = null,
 
     @SerialName("sends")
-    val sends: List<Send>?,
+    val sends: List<Send>? = null,
 
     @SerialName("userDecryption")
-    val userDecryption: UserDecryptionJson?,
+    val userDecryption: UserDecryptionJson? = null,
 ) {
     /**
      * A list of policies associated with the vault data (nullable).
@@ -72,10 +72,10 @@ data class SyncResponseJson(
     @Serializable
     data class Domains(
         @SerialName("globalEquivalentDomains")
-        val globalEquivalentDomains: List<GlobalEquivalentDomain>?,
+        val globalEquivalentDomains: List<GlobalEquivalentDomain>? = null,
 
         @SerialName("equivalentDomains")
-        val equivalentDomains: List<List<String>>?,
+        val equivalentDomains: List<List<String>>? = null,
     ) {
         /**
          * Represents the global equivalent domain in the vault response.
@@ -179,7 +179,7 @@ data class SyncResponseJson(
     @Serializable
     data class Profile(
         @SerialName("providerOrganizations")
-        val providerOrganizations: List<Organization>?,
+        val providerOrganizations: List<Organization>? = null,
 
         @SerialName("premiumFromOrganization")
         val isPremiumFromOrganization: Boolean,
@@ -188,7 +188,7 @@ data class SyncResponseJson(
         val shouldForcePasswordReset: Boolean,
 
         @SerialName("avatarColor")
-        val avatarColor: String?,
+        val avatarColor: String? = null,
 
         @SerialName("emailVerified")
         val isEmailVerified: Boolean,
@@ -201,25 +201,25 @@ data class SyncResponseJson(
             ReplaceWith("profile.accountKeys?.publicKeyEncryptionKeyPair?.wrappedPrivateKey"),
         )
         @SerialName("privateKey")
-        val privateKey: String?,
+        val privateKey: String? = null,
 
         @SerialName("accountKeys")
-        val accountKeys: AccountKeysJson?,
+        val accountKeys: AccountKeysJson? = null,
 
         @SerialName("premium")
         val isPremium: Boolean,
 
         @SerialName("culture")
-        val culture: String?,
+        val culture: String? = null,
 
         @SerialName("name")
-        val name: String?,
+        val name: String? = null,
 
         @SerialName("organizations")
-        private val legacyOrganizations: List<Organization>?,
+        private val legacyOrganizations: List<Organization>? = null,
 
         @SerialName("organizationsNew")
-        private val newOrganizations: List<Organization>?,
+        private val newOrganizations: List<Organization>? = null,
 
         @SerialName("usesKeyConnector")
         val shouldUseKeyConnector: Boolean,
@@ -228,19 +228,19 @@ data class SyncResponseJson(
         val id: String,
 
         @SerialName("masterPasswordHint")
-        val masterPasswordHint: String?,
+        val masterPasswordHint: String? = null,
 
         @SerialName("email")
-        val email: String?,
+        val email: String? = null,
 
         @SerialName("key")
-        val key: String?,
+        val key: String? = null,
 
         @SerialName("securityStamp")
-        val securityStamp: String?,
+        val securityStamp: String? = null,
 
         @SerialName("providers")
-        val providers: List<Provider>?,
+        val providers: List<Provider>? = null,
 
         @SerialName("creationDate")
         @Contextual
@@ -364,25 +364,25 @@ data class SyncResponseJson(
             val isKeyConnectorEnabled: Boolean,
 
             @SerialName("keyConnectorUrl")
-            val keyConnectorUrl: String?,
+            val keyConnectorUrl: String? = null,
 
             @SerialName("type")
             val type: OrganizationType,
 
             @SerialName("seats")
-            val seats: UInt?,
+            val seats: UInt? = null,
 
             @SerialName("enabled")
             val isEnabled: Boolean,
 
             @SerialName("providerType")
-            val providerType: ProviderType?,
+            val providerType: ProviderType? = null,
 
             @SerialName("isProviderUser")
             val isProviderUser: Boolean = false,
 
             @SerialName("maxCollections")
-            val maxCollections: UInt?,
+            val maxCollections: UInt? = null,
 
             @SerialName("selfHost")
             val isSelfHost: Boolean,
@@ -391,7 +391,7 @@ data class SyncResponseJson(
             val permissions: Permissions,
 
             @SerialName("providerId")
-            val providerId: String?,
+            val providerId: String? = null,
 
             @SerialName("id")
             val id: String,
@@ -403,51 +403,51 @@ data class SyncResponseJson(
             val shouldUseDirectory: Boolean,
 
             @SerialName("key")
-            val key: String?,
+            val key: String? = null,
 
             @SerialName("providerName")
-            val providerName: String?,
+            val providerName: String? = null,
 
             @SerialName("usersGetPremium")
             val shouldUsersGetPremium: Boolean,
 
             @SerialName("maxStorageGb")
-            val maxStorageGb: UInt?,
+            val maxStorageGb: UInt? = null,
 
             @SerialName("identifier")
-            val identifier: String?,
+            val identifier: String? = null,
 
             @SerialName("use2fa")
             val use2fa: Boolean,
 
             @SerialName("familySponsorshipToDelete")
-            val familySponsorshipToDelete: Boolean?,
+            val familySponsorshipToDelete: Boolean? = null,
 
             @SerialName("userId")
-            val userId: String?,
+            val userId: String? = null,
 
             @SerialName("useEvents")
             val shouldUseEvents: Boolean,
 
             @SerialName("familySponsorshipFriendlyName")
-            val familySponsorshipFriendlyName: String?,
+            val familySponsorshipFriendlyName: String? = null,
 
             @SerialName("useTotp")
             val shouldUseTotp: Boolean,
 
             @SerialName("familySponsorshipLastSyncDate")
             @Contextual
-            val familySponsorshipLastSyncDate: Instant?,
+            val familySponsorshipLastSyncDate: Instant? = null,
 
             @SerialName("name")
-            val name: String?,
+            val name: String? = null,
 
             @SerialName("useApi")
             val shouldUseApi: Boolean,
 
             @SerialName("familySponsorshipValidUntil")
             @Contextual
-            val familySponsorshipValidUntil: Instant?,
+            val familySponsorshipValidUntil: Instant? = null,
 
             @SerialName("status")
             val status: OrganizationStatusType,
@@ -492,7 +492,7 @@ data class SyncResponseJson(
             val resetPasswordEnrolled: Boolean = false,
 
             @SerialName("organizationUserId")
-            val organizationUserId: String?,
+            val organizationUserId: String? = null,
 
             @SerialName("hasPublicAndPrivateKeys")
             val hasPublicAndPrivateKeys: Boolean = false,
@@ -537,7 +537,7 @@ data class SyncResponseJson(
             val ssoEnabled: Boolean = false,
 
             @SerialName("ssoMemberDecryptionType")
-            val ssoMemberDecryptionType: MemberDecryptionType?,
+            val ssoMemberDecryptionType: MemberDecryptionType? = null,
 
             @SerialName("usePhishingBlocker")
             val usePhishingBlocker: Boolean = false,
@@ -568,7 +568,7 @@ data class SyncResponseJson(
             val permissions: Permissions,
 
             @SerialName("name")
-            val name: String?,
+            val name: String? = null,
 
             @SerialName("id")
             val id: String,
@@ -577,10 +577,10 @@ data class SyncResponseJson(
             val type: Int,
 
             @SerialName("userId")
-            val userId: String?,
+            val userId: String? = null,
 
             @SerialName("key")
-            val key: String?,
+            val key: String? = null,
 
             @SerialName("enabled")
             val isEnabled: Boolean,
@@ -682,98 +682,98 @@ data class SyncResponseJson(
     @Serializable
     data class Cipher(
         @SerialName("notes")
-        val notes: String?,
+        val notes: String? = null,
 
         @SerialName("attachments")
-        val attachments: List<Attachment>?,
+        val attachments: List<Attachment>? = null,
 
         @SerialName("organizationUseTotp")
-        val shouldOrganizationUseTotp: Boolean,
+        val shouldOrganizationUseTotp: Boolean = false,
 
         @SerialName("reprompt")
-        val reprompt: CipherRepromptTypeJson,
+        val reprompt: CipherRepromptTypeJson = CipherRepromptTypeJson.NONE,
 
         @SerialName("edit")
-        val shouldEdit: Boolean,
+        val shouldEdit: Boolean = true,
 
         @SerialName("passwordHistory")
-        val passwordHistory: List<PasswordHistory>?,
+        val passwordHistory: List<PasswordHistory>? = null,
 
         @SerialName("permissions")
-        val permissions: CipherPermissions?,
+        val permissions: CipherPermissions? = null,
 
         @SerialName("revisionDate")
         @Contextual
-        val revisionDate: Instant,
+        val revisionDate: Instant = Instant.MIN,
 
         @SerialName("type")
-        val type: CipherTypeJson,
+        val type: CipherTypeJson = CipherTypeJson.LOGIN,
 
         @SerialName("login")
-        val login: Login?,
+        val login: Login? = null,
 
         @SerialName("creationDate")
         @Contextual
-        val creationDate: Instant,
+        val creationDate: Instant = Instant.MIN,
 
         @SerialName("secureNote")
-        val secureNote: SecureNote?,
+        val secureNote: SecureNote? = null,
 
         @SerialName("folderId")
-        val folderId: String?,
+        val folderId: String? = null,
 
         @SerialName("organizationId")
-        val organizationId: String?,
+        val organizationId: String? = null,
 
         @SerialName("deletedDate")
         @Contextual
-        val deletedDate: Instant?,
+        val deletedDate: Instant? = null,
 
         @SerialName("identity")
-        val identity: Identity?,
+        val identity: Identity? = null,
 
         @SerialName("sshKey")
-        val sshKey: SshKey?,
+        val sshKey: SshKey? = null,
 
         @SerialName("bankAccount")
-        val bankAccount: BankAccount?,
+        val bankAccount: BankAccount? = null,
 
         @SerialName("driversLicense")
-        val driversLicense: DriversLicense?,
+        val driversLicense: DriversLicense? = null,
 
         @SerialName("passport")
-        val passport: Passport?,
+        val passport: Passport? = null,
 
         @SerialName("collectionIds")
-        val collectionIds: List<String>?,
+        val collectionIds: List<String>? = null,
 
         @SerialName("name")
-        val name: String?,
+        val name: String? = null,
 
         @SerialName("id")
         val id: String,
 
         @SerialName("fields")
-        val fields: List<Field>?,
+        val fields: List<Field>? = null,
 
         @SerialName("viewPassword")
-        val shouldViewPassword: Boolean,
+        val shouldViewPassword: Boolean = true,
 
         @SerialName("favorite")
-        val isFavorite: Boolean,
+        val isFavorite: Boolean = false,
 
         @SerialName("card")
-        val card: Card?,
+        val card: Card? = null,
 
         @SerialName("key")
-        val key: String?,
+        val key: String? = null,
 
         @SerialName("encryptedFor")
-        val encryptedFor: String?,
+        val encryptedFor: String? = null,
 
         @SerialName("archivedDate")
         @Contextual
-        val archivedDate: Instant?,
+        val archivedDate: Instant? = null,
     ) {
         /**
          * Represents an attachment in the vault response.
@@ -788,22 +788,22 @@ data class SyncResponseJson(
         @Serializable
         data class Attachment(
             @SerialName("fileName")
-            val fileName: String?,
+            val fileName: String? = null,
 
             @SerialName("size")
-            val size: Int,
+            val size: Long? = null,
 
             @SerialName("sizeName")
-            val sizeName: String?,
+            val sizeName: String? = null,
 
             @SerialName("id")
-            val id: String?,
+            val id: String? = null,
 
             @SerialName("url")
-            val url: String?,
+            val url: String? = null,
 
             @SerialName("key")
-            val key: String?,
+            val key: String? = null,
         )
 
         /**
@@ -819,22 +819,22 @@ data class SyncResponseJson(
         @Serializable
         data class Card(
             @SerialName("number")
-            val number: String?,
+            val number: String? = null,
 
             @SerialName("expMonth")
-            val expMonth: String?,
+            val expMonth: String? = null,
 
             @SerialName("code")
-            val code: String?,
+            val code: String? = null,
 
             @SerialName("expYear")
-            val expirationYear: String?,
+            val expirationYear: String? = null,
 
             @SerialName("cardholderName")
-            val cardholderName: String?,
+            val cardholderName: String? = null,
 
             @SerialName("brand")
-            val brand: String?,
+            val brand: String? = null,
         )
 
         /**
@@ -954,29 +954,29 @@ data class SyncResponseJson(
         @Serializable
         data class Login(
             @SerialName("uris")
-            val uris: List<Uri>?,
+            val uris: List<Uri>? = null,
 
             @SerialName("totp")
-            val totp: String?,
+            val totp: String? = null,
 
             @SerialName("password")
-            val password: String?,
+            val password: String? = null,
 
             @SerialName("passwordRevisionDate")
             @Contextual
-            val passwordRevisionDate: Instant?,
+            val passwordRevisionDate: Instant? = null,
 
             @SerialName("autofillOnPageLoad")
-            val shouldAutofillOnPageLoad: Boolean?,
+            val shouldAutofillOnPageLoad: Boolean? = null,
 
             @SerialName("uri")
-            val uri: String?,
+            val uri: String? = null,
 
             @SerialName("username")
-            val username: String?,
+            val username: String? = null,
 
             @SerialName("fido2Credentials")
-            val fido2Credentials: List<Fido2Credential>?,
+            val fido2Credentials: List<Fido2Credential>? = null,
         ) {
             /**
              * Represents a URI in the vault response.
@@ -987,13 +987,13 @@ data class SyncResponseJson(
             @Serializable
             data class Uri(
                 @SerialName("match")
-                val uriMatchType: UriMatchTypeJson?,
+                val uriMatchType: UriMatchTypeJson? = null,
 
                 @SerialName("uri")
-                val uri: String?,
+                val uri: String? = null,
 
                 @SerialName("uriChecksum")
-                val uriChecksum: String?,
+                val uriChecksum: String? = null,
             )
         }
 
@@ -1033,34 +1033,34 @@ data class SyncResponseJson(
         @Serializable
         data class BankAccount(
             @SerialName("bankName")
-            val bankName: String?,
+            val bankName: String? = null,
 
             @SerialName("nameOnAccount")
-            val nameOnAccount: String?,
+            val nameOnAccount: String? = null,
 
             @SerialName("accountType")
-            val accountType: String?,
+            val accountType: String? = null,
 
             @SerialName("accountNumber")
-            val accountNumber: String?,
+            val accountNumber: String? = null,
 
             @SerialName("routingNumber")
-            val routingNumber: String?,
+            val routingNumber: String? = null,
 
             @SerialName("branchNumber")
-            val branchNumber: String?,
+            val branchNumber: String? = null,
 
             @SerialName("pin")
-            val pin: String?,
+            val pin: String? = null,
 
             @SerialName("swiftCode")
-            val swiftCode: String?,
+            val swiftCode: String? = null,
 
             @SerialName("iban")
-            val iban: String?,
+            val iban: String? = null,
 
             @SerialName("bankContactPhone")
-            val bankContactPhone: String?,
+            val bankContactPhone: String? = null,
         )
 
         /**
@@ -1081,37 +1081,37 @@ data class SyncResponseJson(
         @Serializable
         data class DriversLicense(
             @SerialName("firstName")
-            val firstName: String?,
+            val firstName: String? = null,
 
             @SerialName("middleName")
-            val middleName: String?,
+            val middleName: String? = null,
 
             @SerialName("lastName")
-            val lastName: String?,
+            val lastName: String? = null,
 
             @SerialName("licenseNumber")
-            val licenseNumber: String?,
+            val licenseNumber: String? = null,
 
             @SerialName("dateOfBirth")
-            val dateOfBirth: String?,
+            val dateOfBirth: String? = null,
 
             @SerialName("issuingCountry")
-            val issuingCountry: String?,
+            val issuingCountry: String? = null,
 
             @SerialName("issuingAuthority")
-            val issuingAuthority: String?,
+            val issuingAuthority: String? = null,
 
             @SerialName("issuingState")
-            val issuingState: String?,
+            val issuingState: String? = null,
 
             @SerialName("issueDate")
-            val issueDate: String?,
+            val issueDate: String? = null,
 
             @SerialName("expirationDate")
-            val expirationDate: String?,
+            val expirationDate: String? = null,
 
             @SerialName("licenseClass")
-            val licenseClass: String?,
+            val licenseClass: String? = null,
         )
 
         /**
@@ -1134,43 +1134,43 @@ data class SyncResponseJson(
         @Serializable
         data class Passport(
             @SerialName("surname")
-            val surname: String?,
+            val surname: String? = null,
 
             @SerialName("givenName")
-            val givenName: String?,
+            val givenName: String? = null,
 
             @SerialName("dateOfBirth")
-            val dateOfBirth: String?,
+            val dateOfBirth: String? = null,
 
             @SerialName("birthPlace")
-            val birthPlace: String?,
+            val birthPlace: String? = null,
 
             @SerialName("sex")
-            val sex: String?,
+            val sex: String? = null,
 
             @SerialName("nationality")
-            val nationality: String?,
+            val nationality: String? = null,
 
             @SerialName("passportNumber")
-            val passportNumber: String?,
+            val passportNumber: String? = null,
 
             @SerialName("passportType")
-            val passportType: String?,
+            val passportType: String? = null,
 
             @SerialName("issuingCountry")
-            val issuingCountry: String?,
+            val issuingCountry: String? = null,
 
             @SerialName("issuingAuthority")
-            val issuingAuthority: String?,
+            val issuingAuthority: String? = null,
 
             @SerialName("issueDate")
-            val issueDate: String?,
+            val issueDate: String? = null,
 
             @SerialName("expirationDate")
-            val expirationDate: String?,
+            val expirationDate: String? = null,
 
             @SerialName("nationalIdentificationNumber")
-            val nationalIdentificationNumber: String?,
+            val nationalIdentificationNumber: String? = null,
         )
 
         /**
@@ -1182,11 +1182,11 @@ data class SyncResponseJson(
         @Serializable
         data class PasswordHistory(
             @SerialName("password")
-            val password: String,
+            val password: String = "",
 
             @SerialName("lastUsedDate")
             @Contextual
-            val lastUsedDate: Instant,
+            val lastUsedDate: Instant = Instant.MIN,
         )
 
         /**
@@ -1198,10 +1198,10 @@ data class SyncResponseJson(
         @Serializable
         data class CipherPermissions(
             @SerialName("delete")
-            val delete: Boolean,
+            val delete: Boolean = true,
 
             @SerialName("restore")
-            val restore: Boolean,
+            val restore: Boolean = true,
         )
 
         /**
@@ -1212,7 +1212,7 @@ data class SyncResponseJson(
         @Serializable
         data class SecureNote(
             @SerialName("type")
-            val type: SecureNoteTypeJson,
+            val type: SecureNoteTypeJson = SecureNoteTypeJson.GENERIC,
         )
 
         /**
@@ -1253,16 +1253,16 @@ data class SyncResponseJson(
             val rpId: String,
 
             @SerialName("rpName")
-            val rpName: String?,
+            val rpName: String? = null,
 
             @SerialName("userHandle")
-            val userHandle: String?,
+            val userHandle: String? = null,
 
             @SerialName("userName")
-            val userName: String?,
+            val userName: String? = null,
 
             @SerialName("userDisplayName")
-            val userDisplayName: String?,
+            val userDisplayName: String? = null,
 
             @SerialName("counter")
             val counter: String,
@@ -1306,14 +1306,14 @@ data class SyncResponseJson(
         val accessCount: Int,
 
         @SerialName("notes")
-        val notes: String?,
+        val notes: String? = null,
 
         @SerialName("revisionDate")
         @Contextual
         val revisionDate: Instant,
 
         @SerialName("maxAccessCount")
-        val maxAccessCount: Int?,
+        val maxAccessCount: Int? = null,
 
         @SerialName("hideEmail")
         val shouldHideEmail: Boolean,
@@ -1322,26 +1322,26 @@ data class SyncResponseJson(
         val type: SendTypeJson,
 
         @SerialName("authType")
-        val authType: SendAuthTypeJson?,
+        val authType: SendAuthTypeJson? = null,
 
         @SerialName("accessId")
-        val accessId: String?,
+        val accessId: String? = null,
 
         @SerialName("password")
-        val password: String?,
+        val password: String? = null,
 
         @SerialName("emails")
-        val emails: String?,
+        val emails: String? = null,
 
         @SerialName("file")
-        val file: File?,
+        val file: File? = null,
 
         @SerialName("deletionDate")
         @Contextual
         val deletionDate: Instant,
 
         @SerialName("name")
-        val name: String?,
+        val name: String? = null,
 
         @SerialName("disabled")
         val isDisabled: Boolean,
@@ -1350,14 +1350,14 @@ data class SyncResponseJson(
         val id: String,
 
         @SerialName("text")
-        val text: Text?,
+        val text: Text? = null,
 
         @SerialName("key")
-        val key: String?,
+        val key: String? = null,
 
         @SerialName("expirationDate")
         @Contextual
-        val expirationDate: Instant?,
+        val expirationDate: Instant? = null,
     ) {
         /**
          * Represents a file in the vault response.
@@ -1370,16 +1370,16 @@ data class SyncResponseJson(
         @Serializable
         data class File(
             @SerialName("fileName")
-            val fileName: String?,
+            val fileName: String? = null,
 
             @SerialName("size")
-            val size: Int?,
+            val size: Long? = null,
 
             @SerialName("sizeName")
-            val sizeName: String?,
+            val sizeName: String? = null,
 
             @SerialName("id")
-            val id: String?,
+            val id: String? = null,
         )
 
         /**
@@ -1394,7 +1394,7 @@ data class SyncResponseJson(
             val isHidden: Boolean,
 
             @SerialName("text")
-            val text: String?,
+            val text: String? = null,
         )
     }
 
@@ -1423,7 +1423,7 @@ data class SyncResponseJson(
         val name: String,
 
         @SerialName("externalId")
-        val externalId: String?,
+        val externalId: String? = null,
 
         @SerialName("readOnly")
         val isReadOnly: Boolean,
@@ -1432,10 +1432,10 @@ data class SyncResponseJson(
         val id: String,
 
         @SerialName("manage")
-        val canManage: Boolean?,
+        val canManage: Boolean? = null,
 
         @SerialName("defaultUserCollectionEmail")
-        val defaultUserCollectionEmail: String?,
+        val defaultUserCollectionEmail: String? = null,
 
         @SerialName("type")
         val type: CollectionTypeJson = CollectionTypeJson.SHARED_COLLECTION,

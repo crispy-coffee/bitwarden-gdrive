@@ -20,24 +20,9 @@ enum class CreateVaultItemType(
     CARD(BitwardenString.type_card),
 
     /**
-     * A bank account cipher.
-     */
-    BANK_ACCOUNT(BitwardenString.type_bank_account),
-
-    /**
      * An identity cipher.
      */
     IDENTITY(BitwardenString.type_identity),
-
-    /**
-     * A license cipher.
-     */
-    LICENSE(BitwardenString.type_license),
-
-    /**
-     * A passport cipher.
-     */
-    PASSPORT(BitwardenString.type_passport),
 
     /**
      * A secure note cipher.

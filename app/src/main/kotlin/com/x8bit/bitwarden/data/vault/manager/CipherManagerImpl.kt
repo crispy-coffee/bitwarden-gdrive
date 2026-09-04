@@ -401,38 +401,58 @@ class CipherManagerImpl(
     ): UpdateCipherResult {
         val userId = activeUserId
             ?: return UpdateCipherResult.Error(error = NoActiveUserException())
+
+        Timber.d("CipherManager: Updating cipher %s. Type: %s", cipherId, cipherView.type)
+
         return vaultSdkSource
             .encryptCipher(
                 userId = userId,
                 cipherView = cipherView,
             )
-            .flatMap {
-                ciphersService.updateCipher(
-                    cipherId = cipherId,
-                    body = it.toEncryptedNetworkCipher(),
-                )
-            }
-            .map { response ->
-                when (response) {
-                    is UpdateCipherResponseJson.Invalid -> {
-                        UpdateCipherResult.Error(
-                            errorMessage = response.firstValidationErrorMessage,
-                            error = null,
-                        )
-                    }
-
-                    is UpdateCipherResponseJson.Success -> {
-                        vaultDiskSource.saveCipher(
-                            userId = userId,
-                            cipher = response.cipher.copy(collectionIds = cipherView.collectionIds),
-                        )
-                        UpdateCipherResult.Success
-                    }
-                }
-            }
             .fold(
-                onFailure = { UpdateCipherResult.Error(error = it) },
-                onSuccess = { it },
+                onSuccess = { encryptionContext ->
+                    Timber.d("CipherManager: Encryption successful for %s", cipherId)
+                    val networkCipher = encryptionContext.toEncryptedNetworkCipher()
+
+                    ciphersService.updateCipher(
+                        cipherId = cipherId,
+                        body = networkCipher,
+                    ).fold(
+                        onSuccess = { response ->
+                            when (response) {
+                                is UpdateCipherResponseJson.Invalid -> {
+                                    Timber.w("CipherManager: Server returned INVALID for %s. Message: %s", cipherId, response.message)
+                                    UpdateCipherResult.Error(
+                                        errorMessage = response.firstValidationErrorMessage,
+                                        error = null,
+                                    )
+                                }
+
+                                is UpdateCipherResponseJson.Success -> {
+                                    Timber.d("CipherManager: Server returned SUCCESS for %s", cipherId)
+                                    try {
+                                        vaultDiskSource.saveCipher(
+                                            userId = userId,
+                                            cipher = response.cipher.copy(collectionIds = cipherView.collectionIds),
+                                        )
+                                        UpdateCipherResult.Success
+                                    } catch (e: Exception) {
+                                        Timber.e(e, "CipherManager: Failed to save updated cipher %s to disk", cipherId)
+                                        UpdateCipherResult.Error(error = e)
+                                    }
+                                }
+                            }
+                        },
+                        onFailure = { throwable ->
+                            Timber.e(throwable, "CipherManager: Network PUT failed for %s", cipherId)
+                            UpdateCipherResult.Error(error = throwable)
+                        }
+                    )
+                },
+                onFailure = { throwable ->
+                    Timber.e(throwable, "CipherManager: Encryption failed for %s", cipherId)
+                    UpdateCipherResult.Error(error = throwable)
+                }
             )
     }
 

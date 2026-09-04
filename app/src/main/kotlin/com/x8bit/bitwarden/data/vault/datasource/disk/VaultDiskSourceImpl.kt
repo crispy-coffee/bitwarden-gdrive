@@ -48,18 +48,27 @@ class VaultDiskSourceImpl(
     private val forceSendFlow = bufferedMutableSharedFlow<List<SyncResponseJson.Send>>()
 
     override suspend fun saveCipher(userId: String, cipher: SyncResponseJson.Cipher) {
-        ciphersDao.insertCiphers(
-            ciphers = listOf(
-                CipherEntity(
-                    id = cipher.id,
-                    userId = userId,
-                    hasTotp = cipher.login?.totp != null,
-                    cipherType = json.encodeToString(cipher.type),
-                    cipherJson = json.encodeToString(cipher),
-                    organizationId = cipher.organizationId,
+        try {
+            val hasTotp = cipher.login?.totp != null
+            val cipherTypeJson = json.encodeToString(cipher.type)
+            val cipherJson = json.encodeToString(cipher)
+
+            ciphersDao.insertCiphers(
+                ciphers = listOf(
+                    CipherEntity(
+                        id = cipher.id,
+                        userId = userId,
+                        hasTotp = hasTotp,
+                        cipherType = cipherTypeJson,
+                        cipherJson = cipherJson,
+                        organizationId = cipher.organizationId,
+                    ),
                 ),
-            ),
-        )
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "VaultDiskSource: Failed to save Cipher %s to database. Type: %s", cipher.id, cipher.type)
+            throw e
+        }
     }
 
     override fun getCiphersFlow(
@@ -361,6 +370,7 @@ class VaultDiskSourceImpl(
         userId: String,
         vault: SyncResponseJson,
     ) {
+        android.util.Log.d("ISOLATION", "VaultDiskSource: replaceVaultData started for ${vault.ciphers?.size} ciphers")
         coroutineScope {
             val deferredCiphers = async {
                 ciphersDao.replaceAllCiphers(
@@ -445,6 +455,7 @@ class VaultDiskSourceImpl(
                 forceSendFlow.tryEmit(emptyList())
             }
         }
+        android.util.Log.d("ISOLATION", "VaultDiskSource: replaceVaultData finished successfully")
     }
 
     override suspend fun resyncVaultData(userId: String) {
